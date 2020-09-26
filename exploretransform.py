@@ -673,18 +673,19 @@ def skew_df(df):
 
 
     
-def corrX(df, cut = 0.9, ret = 'name') :
+def corrX(X, y = None, cut = 0.9, ret = 'name') :
        
     '''
     ----------   
     
     Parameters
     ----------
-    df:     dataframe with target column removed
+    X:      predictors dataframe
+    y:      target
     cut:    correlation cutoff
     ret:    'name'  returns names of columns
             'ind'   returns indexes of columns
-            'df'    returns datafrme with columns dropped
+            'X'    returns datafrme with columns dropped
 
     Returns
     -------
@@ -702,16 +703,16 @@ def corrX(df, cut = 0.9, ret = 'name') :
     -------
 
     source = 'http://lib.stat.cmu.edu/datasets/boston_corrected.txt'
-    df = pd.read_table(source, skiprows= 9)
-    df.columns = map(str.lower, df.columns)
+    X = pd.read_table(source, skiprows= 9)
+    X.columns = map(str.lower, X.columns)
     # Keeping only numeric columns (non-target)
-    df = df.drop( ['obs.', 'town#', 'medv', 'cmedv', 'tract', 
+    X = X.drop( ['obs.', 'town#', 'medv', 'cmedv', 'tract', 
                     'rad', 'town', 'chas'],axis = 1)
     
-    corrX(df, cut = 0.6)
+    corrX(X, cut = 0.6)
     ['nox', 'indus', 'lstat', 'dis']
     
-    corrX(df, cut = 0.6, ret = 'ind')
+    corrX(X, cut = 0.6, ret = 'ind')
     [5, 4, 12, 8]
     
     ---------- 
@@ -719,18 +720,18 @@ def corrX(df, cut = 0.9, ret = 'name') :
 
     
     # Input Checks
-    if isinstance(df, (pd.core.frame.DataFrame)): pass
+    if isinstance(X, (pd.core.frame.DataFrame)): pass
     else: return print("\nFunction only accetps dataframes\n")
-    if checkNested(df): return print("\nPlease collapse any nested values"  + 
+    if checkNested(X): return print("\nPlease collapse any nested values"  + 
                                      "in your dataframe\n")
 
     # check for at least 2 numeric columns
-    if len(df.select_dtypes('number').columns) >= 2: pass
+    if len(X.select_dtypes('number').columns) >= 2: pass
     else: return print("Dataframe must have 2 or more numeric columns")
     
 
     # Get correlation matrix and upper triagle
-    corr_mtx = df.corr().abs()
+    corr_mtx = X.corr().abs()
     avg_corr = corr_mtx.mean(axis = 1)
     up = corr_mtx.where(np.triu(np.ones(corr_mtx.shape), k=1).astype(np.bool))
     
@@ -761,13 +762,13 @@ def corrX(df, cut = 0.9, ret = 'name') :
                 res = res.append(s, ignore_index = True)
     
     dropcols_names = calcDrop(res)
-    dropcols_idx = list(df.columns.get_indexer(dropcols_names))
+    dropcols_idx = list(X.columns.get_indexer(dropcols_names))
     
 
         
     if ret == 'ind':    return(dropcols_idx)
     if ret == 'name':  return(dropcols_names)
-    if ret == 'df':     return(df.drop(dropcols_names, axis = 1))
+    if ret == 'X':     return(X.drop(dropcols_names, axis = 1))
     
 
     
@@ -864,165 +865,3 @@ def associationMeasures(X, y):
     return r
 
 
-# This is temporarily retired for now.  The code is very redundant with corrX
-
-# def corrY(df, y, cut = 0.9, ret = 'name'):
-    
-#     '''
-#     ----------   
-    
-#     Parameters
-#     ----------
-#     df:     dataframe with target column included
-#     y:      name of the target column
-#     cut:    correlation cutoff
-#     ret:    'name'  returns names of columns
-#             'ind'   returns indexes of columns
-#             'df'    returns datafrme with columns dropped
-
-#     Returns
-#     -------
-#     This function analyzes the correlation matrix for the dataframe and 
-#     returns a list of columns to drop based on the correlation cutoff.  It
-#     uses the correlation between each variables and the target
-#     to decide on potential drop candidates.  
-    
-#     It uses the calcDrop() function in order to calculate which columns 
-#     should be dropped.  For more information please visit:
-        
-#     https://towardsdatascience.com/are-you-dropping-too-many-correlated-features-d1c96654abe6
-        
-#     Example 
-#     -------
-
-#     source = 'http://lib.stat.cmu.edu/datasets/boston_corrected.txt'
-#     df = pd.read_table(source, skiprows= 9)
-#     df.columns = map(str.lower, df.columns)
-#     # Keeping numeric columns with target (cmedv)
-#     df = df.drop( ['obs.', 'town#', 'medv', 'tract', 
-#                     'rad', 'town', 'chas'],axis = 1)
-    
-#     corrY(df, y='cmedv' cut = 0.6)
-#     ['indus', 'rm', 'age', 'dis', 'nox']  
-    
-#     ---------- 
-#     '''   
-    
-    
-#     # Input Checks
-#     if isinstance(df, (pd.core.frame.DataFrame)): pass
-#     else: return print("\nFunction only accetps dataframes\n")
-    
-#     if checkNested(df): return print("\nPlease collapse any nested values"  + 
-#                                      "in your dataframe\n")
-
-#     # check for at least 2 numeric columns
-#     if len(df.select_dtypes('number').columns) >= 3: pass
-#     else: return print("\nDataframe must have 3 or more numeric columns\n")
-    
-#     # check y is in df
-#     # if y in df.columns: pass
-#     # else: return print("\nPlease check dataframe and specify correct target\n")
-
-#     # source = 'http://lib.stat.cmu.edu/datasets/boston_corrected.txt'
-#     # df = pd.read_table(source, skiprows= 9)
-#     # df.columns = map(str.lower, df.columns)
-#     # # Keeping numeric columns with target (cmedv)
-#     # y = df['cmedv']
-#     # df = df.drop( ['obs.', 'town#', 'medv', 'tract', 
-#     #                 'rad', 'town', 'chas', 'cmedv'],axis = 1)
-#     # cut = 0.5
-    
-#     df['target'] = y
-#     corr_mtx = df.corr().abs()
-#     targetCorr = corr_mtx.loc['target'].drop('target')
-#     # y = df[[y]]
-#     df = df.drop(['target'], axis = 1)
-#     res = pd.DataFrame(columns=(['v1', 'v2', 'v1.target', 
-#                                  'v2.target','corr', 'drop' ]))
-    
-#     # get upper triagle
-#     corr_mtx = df.corr().abs()
-#     up = corr_mtx.where(np.triu(np.ones(corr_mtx.shape), k=1).astype(np.bool))    
-#     up.columns = up.index.map(str)    
-    
-#     # make this a function returning res
-#     for row in range(0, up.shape[0] - 1):
-#         # print(i)
-#         for col in range(1, up.shape[1]):
-#             if up.iloc[row,col] > cut:
-#                 if targetCorr[row] > targetCorr[col]:
-#                     drop = corr_mtx.columns[col]
-#                 else:
-#                     drop = corr_mtx.index[row]
-#                 s = pd.Series([ corr_mtx.index[row],
-#                                 corr_mtx.columns[col],
-#                                 targetCorr[row],
-#                                 targetCorr[col],
-#                                 up.iloc[row,col],
-#                                 drop],
-#                                 index = res.columns)
-#                 res = res.append(s, ignore_index = True)
-
-#     drop = calcDrop(res)
-    
-#     if ret == 'name':  return(drop)
-#     if ret == 'df':     return(df.drop(drop, axis = 1))
-#     if ret == 'ind':    return([df.columns.get_loc(c) for c in drop])
-
-
-
-
-#def catOtherLevel(srs, threshold = 0):
-#     '''
-#     ----------   
-    
-#     Parameters
-#     ----------
-#     srs:        Categorical series to be transformed
-#     threshold:  For method 'other', the percentage threshold to start
-#                 combining categories into "other"
-
-#     Returns
-#     -------
-    
-#     This function encodes a categorical predictor based on the method 
-#     spedified.  It returns a one hot encoded numpy array
-   
-#     Example 
-#     -------
-
-#     source = 'http://lib.stat.cmu.edu/datasets/boston_corrected.txt'
-#     df = pd.read_table(source, skiprows= 9)
-#     srs = df['TOWN']
-#     catEncode(srs, method = 'other', thresh = 0.015)[0:5]
-#     Out[176]: 
-#     array([[21.],
-#            [21.],
-#            [21.],
-#            [21.],
-#            [21.]])
-    
-#     ---------- 
-#     '''      
-
-
-#     # get frequency table
-#     f = freq(srs)[[srs.name, 'perc']]
-    
-#     # get "others" to create lookup table
-#     # o = f[ f['perc'] <= (threshold * 100) ][srs.name]
-    
-#     # get "us" (not "others") to create lookup table
-#     u = f[ f['perc'] > (threshold * 100) ][srs.name]
-
-#     # if srs in o then replace with "other"
-#     # for x in range(len(srs)):
-#     #     if sum(o.str.contains(srs[x])) > 0:
-#     #         srs[x] = 'other'
-            
-#     # perform enconding and return
-#     # enc = OrdinalEncoder().fit_transform(pd.DataFrame(srs))
-#     # return enc
-#     return u
-  
