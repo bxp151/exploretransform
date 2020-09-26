@@ -672,8 +672,26 @@ def skew_df(df):
     return result
 
 
+
+def associationMeasures(X, y):
     
-def corrX(X, y = None, cut = 0.9, ret = 'name') :
+
+    r = pd.DataFrame(data = 0.0, index=X.columns, 
+                     columns = ['mic', 'pearson', 'spearman', 'cosine'])
+    
+    mine = MINE(alpha=0.6, c=15) 
+    
+    for col in X.columns:
+        mine.compute_score(X[col], y)
+        r.loc[col, 'mic'] = mine.mic()
+        r.loc[col, 'pearson'] = abs(stats.pearsonr(X[col], y)[0])
+        r.loc[col, 'spearman'] = abs(stats.spearmanr(X[col], y)[0])
+        r.loc[col, 'cosine'] = abs(1-distance.cosine(X[col], y))
+    return r
+
+
+    
+def corr(X, y = None, cut = 0.9, ret = 'name') :
        
     '''
     ----------   
@@ -771,9 +789,6 @@ def corrX(X, y = None, cut = 0.9, ret = 'name') :
     if ret == 'X':     return(X.drop(dropcols_names, axis = 1))
     
 
-    
-
-
 
 class CategoricalOtherLevel( BaseEstimator, TransformerMixin ):
     
@@ -822,7 +837,7 @@ class CorrelationFilter( BaseEstimator, TransformerMixin ):
         
     def fit( self, X, y = None ):
         if self.corrType == 'X': 
-            self.names = corrX(X, cut = self.cut)
+            self.names = corr(X, cut = self.cut)
             
         
         
@@ -846,22 +861,4 @@ class ColumnSelect( BaseEstimator, TransformerMixin ):
     
     def transform( self, X,  y = None ):
         return X[self.feature_names]
-
-
-def associationMeasures(X, y):
-    
-
-    r = pd.DataFrame(data = 0.0, index=X.columns, 
-                     columns = ['mic', 'pearson', 'spearman', 'cosine'])
-    
-    mine = MINE(alpha=0.6, c=15) 
-    
-    for col in X.columns:
-        mine.compute_score(X[col], y)
-        r.loc[col, 'mic'] = mine.mic()
-        r.loc[col, 'pearson'] = abs(stats.pearsonr(X[col], y)[0])
-        r.loc[col, 'spearman'] = abs(stats.spearmanr(X[col], y)[0])
-        r.loc[col, 'cosine'] = abs(1-distance.cosine(X[col], y))
-    return r
-
 
