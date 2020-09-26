@@ -16,8 +16,6 @@ from minepy import MINE
 from scipy import stats
 from scipy.spatial import distance
 
-# single change
-
 def checkNested(obj):
     
     '''
