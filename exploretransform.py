@@ -580,6 +580,9 @@ def skew_df(df):
 
 def associationMeasures(X, y):
     
+    # X, y = loadBoston()
+    X = X.select_dtypes('number')
+    if len(X.columns) == 0: return print("\nDataframe has no numeric columns\n") 
 
     r = pd.DataFrame(data = 0.0, index=X.columns, 
                      columns = ['mic', 'pearson', 'spearman', 'cosine'])
