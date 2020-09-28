@@ -8,6 +8,7 @@ Created on Sun Sep 13 09:06:09 2020
 
 import numpy as np
 import pandas as pd
+from pandas.api.types import is_numeric_dtype
 import plotnine as pn
 from scipy.stats import skew
 from pandas.api.types import CategoricalDtype
@@ -15,6 +16,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from minepy import MINE
 from scipy import stats
 from scipy.spatial import distance
+
 
 def checkNested(obj):
     
@@ -182,7 +184,7 @@ def loadBoston(t = 'all'):
     return x, y
     
 
-def describe(df):
+def describe(X):
     
 
     '''
@@ -222,10 +224,10 @@ def describe(df):
 
     ---------- 
     '''        
-    
+   
     # Input Checks
-    if isinstance(df, (pd.core.frame.DataFrame)):
-        if checkNested(df): 
+    if isinstance(X, (pd.core.frame.DataFrame)):
+        if checkNested(X): 
             print("\nPlease collapse any nested values in your dataframe\n")
             return
         else: 
@@ -233,73 +235,26 @@ def describe(df):
     else:
         print("\nFunction only accetps dataframes\n")
         return
-
-    # Get number of rows in dataframe
-    obscnt = len(df)
     
-    # get info() function into buffer to manipulate in to dataframe
-    import io
-    buffer = io.StringIO()
-    df.info(null_counts = True, verbose = True, buf=buffer)
-    s = buffer.getvalue()
-    
-    # Slice only important part of info()
-    left = ' 0   '
-    right = 'dtypes: '
-    slice = s[s.index(left) + 1: s.index(right)]
-
-    # convert into dataframe
-    eda = pd.read_fwf(io.StringIO(slice), names = ['#', 'variable', 'Non-Null Count', 'dtype'])
-    
-    # drop the # column
-    eda = eda.drop(['#'], axis = 1)
-    
-    
-    # calcuate q_zer column
+    # counts zeros for numeric dtype and returns zero for others
     def cntzero(series):
+        if is_numeric_dtype(series): return sum(series == 0)
+        else:return 0 
         
-        "Returns # of zeros in a numeric series or zero for non-numeric series"
-        
-        if series.dtype not in ['int64', 'float64']:
-            return 0
-        else:
-            return sum(series == 0)   
-    eda.insert(1, 'q_zer', df.apply(cntzero, axis = 0).values )
-    
-    # add p_zer column
-    eda.insert(2, 'p_zer', round(eda['q_zer'] / obscnt * 100, 2))
-    
-    # add q_na column
-    # Get number as text from non-null count
-    eda['Non-Null Count'] = [ item[0] for item in eda['Non-Null Count'].str.split() ]
-    
-    # populate missing count into 'non-null count' column 
-    eda['Non-Null Count'] = obscnt - eda['Non-Null Count'].astype(int)
-    
-    # rename column to q_na
-    eda = eda.rename(columns = {'Non-Null Count': 'q_na'})
-    
-    
-    # add percent na column p_na
-    eda.insert(4, 'p_na', eda['q_na'] / obscnt)
-    
-    # add q_inf column
+    # counts inf values for numeric dtype and returns zero for others
     def cntinf(series):
-        "Returns # of inf in a numeric series or zero for non-numeric"
-        if series.dtype not in ['int64', 'float64']:
-            return 0
-        else:
-            return sum(np.isinf(series))
+        if is_numeric_dtype(series): return sum(np.isinf(series))
+        else: return 0
         
-    eda.insert(5, 'q_inf', df.apply(cntinf, axis = 0).values )
+    df = pd.DataFrame({'variable': X.columns})
+    df['q_zer'] = X.apply(cntzero, axis = 0).values
+    df['p_zer'] = round(df['q_zer'] / len(X) * 100, 2)
+    df['q_na'] = X.isna().sum().values
+    df['p_na'] = round(df['q_na'] / len(X) * 100, 2)
+    df['lvls'] = X.nunique().values  
     
-    # add p_inf column
-    eda.insert(6, 'p_inf', eda['q_inf'] / obscnt )
-      
-    # add unique values column
-    eda['unique'] = df.nunique().values  
-    
-    return eda
+    return df
+
 
 
 def glimpse(df):
@@ -579,6 +534,8 @@ def skew_df(df):
 
 
 def associationMeasures(X, y):
+    
+    ### you can use this to find association between X1 and X2
     
     # X, y = loadBoston()
     X = X.select_dtypes('number')
