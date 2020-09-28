@@ -1,6 +1,7 @@
-pandas==1.0.3
-minepy==1.2.4
-numpy==1.19.1
 scipy==1.4.1
+minepy==1.2.4
 plotnine==0.7.1
+numpy==1.19.1
+pandas==1.0.3
+dcor==0.5.2
 scikit_learn==0.23.2

@@ -16,6 +16,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from minepy import MINE
 from scipy import stats
 from scipy.spatial import distance
+from dcor import distance_correlation
 
 
 def checkNested(obj):
@@ -535,23 +536,25 @@ def skew_df(df):
 
 def associationMeasures(X, y):
     
-    ### you can use this to find association between X1 and X2
+    # X has to be a dataframe
+    # you can use this to find association between X1 and X2
+    # will get a warning if any ints X['tax'] = X['tax'].astype(float)
     
-    # X, y = loadBoston()
     X = X.select_dtypes('number')
     if len(X.columns) == 0: return print("\nDataframe has no numeric columns\n") 
-
-    r = pd.DataFrame(data = 0.0, index=X.columns, 
-                     columns = ['mic', 'pearson', 'spearman', 'cosine'])
+    
+    r = pd.DataFrame()
     
     mine = MINE(alpha=0.6, c=15) 
     
     for col in X.columns:
         mine.compute_score(X[col], y)
-        r.loc[col, 'mic'] = mine.mic()
         r.loc[col, 'pearson'] = abs(stats.pearsonr(X[col], y)[0])
+        r.loc[col, 'kendall'] = abs(stats.kendalltau(X[col], y)[0])
         r.loc[col, 'spearman'] = abs(stats.spearmanr(X[col], y)[0])
-        r.loc[col, 'cosine'] = abs(1-distance.cosine(X[col], y))
+        r.loc[col, 'mic'] = mine.mic()
+        r.loc[col, 'dcor'] = distance_correlation(X[col], y)
+    
     return r
 
    
