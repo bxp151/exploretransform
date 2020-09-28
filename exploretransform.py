@@ -15,7 +15,6 @@ from pandas.api.types import CategoricalDtype
 from sklearn.base import BaseEstimator, TransformerMixin
 from minepy import MINE
 from scipy import stats
-from scipy.spatial import distance
 from dcor import distance_correlation
 
 
@@ -71,7 +70,6 @@ def checkNested(obj):
               pd.core.series.Series, 
               pd.core.frame.DataFrame)
 
-        
 
     # Interates through obj and returns true if type in nestdtypes
     
@@ -147,23 +145,22 @@ def loadBoston(t = 'all'):
     Parameters
     ----------
     t: option for return set 
-        all (default)  all columns with dtypes fixed and columns dropped
-        num'           only numeric dtypes
+        'all' (default)  all columns with dtypes fixed and columns dropped
+        'num'            only numeric dtypes
     
     Returns
     -------
     Boston Dataset, 2 objects
-        x   predictors  dataframe
-        y   target      series      
+        df  X and y     dataframe    
+        X   predictors  dataframe
+        y   target      series
     
     -------
     '''
     source = 'http://lib.stat.cmu.edu/datasets/boston_corrected.txt'
     df = pd.read_table(source, skiprows= 9)
     df.columns = map(str.lower, df.columns)   
-    
-    # t = 'all'
-    
+        
     df = df.drop( ['obs.', 'town#', 'medv', 'tract'],axis = 1)
     
     if t == 'all':
@@ -182,7 +179,7 @@ def loadBoston(t = 'all'):
     x = df.drop('cmedv', axis = 1)
     y = df['cmedv']  
     
-    return x, y
+    return df, x, y
     
 
 def describe(X):
@@ -193,7 +190,7 @@ def describe(X):
     
     Parameters
     ----------
-    df : dataframe to analyze
+    X:       dataframe to analyze
 
     Returns
     -------
@@ -206,21 +203,21 @@ def describe(X):
     q_inf:   quanitity of infinity  
     p_inf:   percent infinity
     dtype:   python dtype  
-    uniqe:    unique levels
+    uniqe:   unique levels
 
 
     Example 
     -------
-    source = 'http://lib.stat.cmu.edu/datasets/boston_corrected.txt'
-    BostonHousing2 = pd.read_table(source, skiprows= 9)
-    describe(BostonHousing2.iloc[:,0:5])
+    import exploretransform as et
+    df, X, y = et.loadBoston()
+    et.describe(df.iloc[:,0:5])
     
-          variable  q_zer  p_zer  q_na  p_na  q_inf  p_inf    dtype  unique
-    0     OBS.        0      0.0     0   0.0      0    0.0    int64     506
-    1     TOWN        0      0.0     0   0.0      0    0.0   object      92
-    2    TOWN#        1      0.2     0   0.0      0    0.0    int64      92
-    3    TRACT        0      0.0     0   0.0      0    0.0    int64     506
-    4      LON        0      0.0     0   0.0      0    0.0  float64     375
+      variable  q_zer  p_zer  q_na  p_na  q_inf  p_inf    dtype  lvls
+    0     town      0    0.0     0   0.0      0    0.0   object    92
+    1      lon      0    0.0     0   0.0      0    0.0  float64   375
+    2      lat      0    0.0     0   0.0      0    0.0  float64   376
+    3    cmedv      0    0.0     0   0.0      0    0.0  float64   228
+    4     crim      0    0.0     0   0.0      0    0.0  float64   504
     
 
     ---------- 
@@ -252,13 +249,15 @@ def describe(X):
     df['p_zer'] = round(df['q_zer'] / len(X) * 100, 2)
     df['q_na'] = X.isna().sum().values
     df['p_na'] = round(df['q_na'] / len(X) * 100, 2)
+    df['q_inf'] = X.apply(cntinf, axis = 0).values
+    df['p_inf'] = round(df['q_inf'] / len(X) * 100, 2)
+    df['dtype'] = X.dtypes.to_frame('dtypes').reset_index()['dtypes']
     df['lvls'] = X.nunique().values  
     
     return df
 
 
-
-def glimpse(df):
+def glimpse(X):
     
     
     '''
@@ -266,7 +265,7 @@ def glimpse(df):
     
     Parameters
     ----------
-    df: dataframe to glimpse into
+    X: dataframe to glimpse into
 
     Returns
     -------
@@ -274,55 +273,54 @@ def glimpse(df):
 
     Example 
     -------
-    source = 'http://lib.stat.cmu.edu/datasets/boston_corrected.txt'
-    BostonHousing2 = pd.read_table(source, skiprows= 9)
-    glimpse(BostonHousing2.iloc[:,0:4])
+    import exploretransform as et
+    df, X, y = et.loadBoston()
+    et.glimpse(df.iloc[:,0:5])
     
-    Rows: 506
-    Columns: 4
 
-      variable   dtype                            first_five_observations
-    0     OBS.   int64                                    [1, 2, 3, 4, 5]
-    1     TOWN  object  [Nahant, Swampscott, Swampscott, Marblehead, M...
-    2    TOWN#   int64                                    [0, 1, 1, 2, 2]
-    3    TRACT   int64                     [2011, 2021, 2022, 2031, 2032]
+      variable    dtype                            first_five_observations
+    0     town   object  [Nahant, Swampscott, Swampscott, Marblehead, M...
+    1      lon  float64       [-70.955, -70.95, -70.936, -70.928, -70.922]
+    2      lat  float64          [42.255, 42.2875, 42.283, 42.293, 42.298]
+    3    cmedv  float64                     [24.0, 21.6, 34.7, 33.4, 36.2]
+    4     crim  float64  [0.00632, 0.02731, 0.02729, 0.0323699999999999...
 
     ---------- 
     '''        
     # Input Checks
-    if isinstance(df, (pd.core.frame.DataFrame)): pass
+    if isinstance(X, (pd.core.frame.DataFrame)): pass
     else: return print("\nFunction only accetps dataframes\n")
-    if checkNested(df): return print("\nPlease collapse any nested values in your dataframe\n")
+    if checkNested(X): return print("\nPlease collapse any nested values in your dataframe\n")
 
 
     
     # grab first columns from describe dataframe
-    g = describe(df)[['variable', 'dtype']]
+    g = describe(X)[['variable', 'dtype']]
     # create new column to store observations
     g['first_five_observations'] = ''
     
     # get the first 5 items for each variable
     # transpose the data frame and store the values
-    x = df.apply((pd.DataFrame.head), axis = 0 ).T.values
+    x = X.apply((pd.DataFrame.head), axis = 0 ).T.values
     
     # populate values into new dataframe column
     for i in range(0, len(x)):
         g['first_five_observations'][i] = x[i]
     
-    r = '\nRows: ' + str(len(df))
-    c = 'Columns: ' + str(len(df.columns))
-    g = print(r + '\n' + c + '\n\n' + str(g))
+    #r = '\nRows: ' + str(len(X))
+    #c = 'Columns: ' + str(len(X.columns))
+    #g = print(r + '\n' + c + '\n\n' + str(g))
     
     return g
 
 
-def plotfreq(df):
+def plotfreq(freqdf):
     '''
     ----------   
     
     Parameters
     ----------
-    df: dataframe generated by freq()
+    freqdf: dataframe generated by freq()
 
     Returns
     -------
@@ -330,7 +328,9 @@ def plotfreq(df):
         
     Example 
     -------
-    plotfreq(df)
+    import exploretransform as et
+    df, X, y = et.loadBoston()
+    et.plotfreq(et.freq(X['town']))
 
     Warning 
     -------
@@ -343,27 +343,27 @@ def plotfreq(df):
     # df.columns[1:4]).isin(['freq', 'perc', 'cump'])
     
     # input checks
-    if isinstance(df, (pd.core.frame.DataFrame)): pass
+    if isinstance(freqdf, (pd.core.frame.DataFrame)): pass
     else: return print("\nFunction only accetps dataframes\n") 
     
-    if len(df.columns) == 4: pass
+    if len(freqdf.columns) == 4: pass
     else: return print("\nInput must be a dataframe generated by freq()\n")
     
-    if sum(df.columns[1:4] == ['freq', 'perc', 'cump']) == 3: pass
+    if sum(freqdf.columns[1:4] == ['freq', 'perc', 'cump']) == 3: pass
     else: return print("\nInput must be a dataframe generated by freq()\n")
     
-    if len(df) < 101: pass
+    if len(freqdf) < 101: pass
     else: return print("\nUnable to plot more than 100 items")
     
     # label for plot
-    lbl =  df['freq'].astype(str).str.cat('[ ' + df['perc'].astype(str) + '%' + ' ]'
+    lbl =  freqdf['freq'].astype(str).str.cat('[ ' + freqdf['perc'].astype(str) + '%' + ' ]'
                                           , sep = '   ') 
     # create variable to be used in aes
-    aesx = 'reorder(' + df.columns[0] + ', freq)'
+    aesx = 'reorder(' + freqdf.columns[0] + ', freq)'
        
         # build plot
     plot = ( 
-      pn.ggplot(df) +
+      pn.ggplot(freqdf) +
       pn.aes(x = aesx, 
              y = 'freq', 
              fill = 'freq', 
@@ -372,7 +372,7 @@ def plotfreq(df):
       pn.coord_flip() +
       pn.theme(axis_text_y = pn.element_text(size=6, weight = 'bold'), 
             legend_position = 'none') + 
-      pn.labs(x=df.columns[0], y="Freq") +
+      pn.labs(x=freqdf.columns[0], y="Freq") +
       pn.scale_fill_gradient2(mid='bisque', high='blue') +
       pn.geom_text(size = 6,
                    nudge_y = .7)
@@ -403,22 +403,22 @@ def freq(srs):
     
     Example 
     -------
-    source = 'http://lib.stat.cmu.edu/datasets/boston_corrected.txt'
-    BostonHousing2 = pd.read_table(source, skiprows= 9)
-    freq(BostonHousing2['TOWN'])
+    import exploretransform as et
+    df, X, y = et.loadBoston()
+    et.freq(X['town'])
     
-                     TOWN  freq  perc    cump
+                     town  freq  perc    cump
     0           Cambridge    30  5.93    5.93
     1   Boston Savin Hill    23  4.55   10.47
     2                Lynn    22  4.35   14.82
     3      Boston Roxbury    19  3.75   18.58
     4              Newton    18  3.56   22.13
     ..                ...   ...   ...     ...
-    87           Medfield     1  0.20   99.21
-    88             Millis     1  0.20   99.41
-    89          Topsfield     1  0.20   99.60
-    90              Dover     1  0.20   99.80
-    91            Norwell     1  0.20  100.00
+    87          Topsfield     1  0.20   99.21
+    88         Manchester     1  0.20   99.41
+    89              Dover     1  0.20   99.60
+    90            Hanover     1  0.20   99.80
+    91            Lincoln     1  0.20  100.00
 
     ---------- 
     '''    
@@ -432,23 +432,23 @@ def freq(srs):
     perc = round(cnts / sum(cnts.values) * 100, 2)
     cump = round(100 * (cnts.cumsum() / cnts.sum()), 2)
     
-    df = pd.DataFrame(data = dict(var = cnts.keys(),
+    freqdf = pd.DataFrame(data = dict(var = cnts.keys(),
                                    freq = cnts,
                                    perc = perc,
                                    cump = cump))
-    df.rename(columns={'var': srs.name}, inplace=True)
-    df = df.reset_index(drop = True)
+    freqdf.rename(columns={'var': srs.name}, inplace=True)
+    freqdf = freqdf.reset_index(drop = True)
     
-    return df
+    return freqdf
 
 
-def skew_df(df):
+def skewstats(X):
     '''
     ----------   
     
     Parameters
     ----------
-    df:     dataframe to analyze
+    X:     dataframe to analyze
 
     Returns
     -------
@@ -459,47 +459,41 @@ def skew_df(df):
     skewness:   Skewness statistic calculated by skew function
     
     magnitude:   
-    2-high              Skewness less than -1 or greater than 1     
-    1-medium            Skewness between -1 and -0.5 or 0.5 and 1   
-    0-approx_symmetric  Skewness between -0.5 and 0.5             
+        2-high              Skewness less than -1 or greater than 1     
+        1-medium            Skewness between -1 and -0.5 or 0.5 and 1   
+        0-approx_symmetric  Skewness between -0.5 and 0.5             
     
     Example 
     -------
-    source = 'http://lib.stat.cmu.edu/datasets/boston_corrected.txt'
-    BostonHousing2 = pd.read_table(source, skiprows= 9)
-    skew_df(BostonHousing2)
+    import exploretransform as et
+    df, X, y = et.loadBoston()
+    et.skewstats(df)
     
                dtype  skewness           magnitude
-    CHAS       int64  3.395799              2-high
-    B        float64 -2.881798              2-high
-    MEDV     float64  1.104811              2-high
-    CMEDV    float64  1.107616              2-high
-    CRIM     float64  5.207652              2-high
-    ZN       float64  2.219063              2-high
-    RAD        int64  1.001833              2-high
-    DIS      float64  1.008779              2-high
-    AGE      float64 -0.597186            1-medium
-    PTRATIO  float64 -0.799945            1-medium
-    TAX        int64  0.667968            1-medium
-    LSTAT    float64  0.903771            1-medium
-    NOX      float64  0.727144            1-medium
-    RM       float64  0.402415  0-approx_symmetric
-    TOWN#      int64  0.039088  0-approx_symmetric
-    INDUS    float64  0.294146  0-approx_symmetric
-    LAT      float64 -0.086421  0-approx_symmetric
-    LON      float64 -0.204775  0-approx_symmetric
-    TRACT      int64 -0.434515  0-approx_symmetric
-    OBS.       int64  0.000000  0-approx_symmetric
+    cmedv    float64  1.107616              2-high
+    crim     float64  5.207652              2-high
+    zn       float64  2.219063              2-high
+    dis      float64  1.008779              2-high
+    b        float64 -2.881798              2-high
+    nox      float64  0.727144            1-medium
+    age      float64 -0.597186            1-medium
+    tax        int64  0.667968            1-medium
+    ptratio  float64 -0.799945            1-medium
+    lstat    float64  0.903771            1-medium
+    lon      float64 -0.204775  0-approx_symmetric
+    lat      float64 -0.086421  0-approx_symmetric
+    indus    float64  0.294146  0-approx_symmetric
+    rm       float64  0.402415  0-approx_symmetric
 
     ---------- 
     '''    
     
     
     # input checks
-    if isinstance(df, (pd.core.frame.DataFrame)): pass
+    if isinstance(X, (pd.core.frame.DataFrame)): pass
     else: return print("\nFunction only accetps dataframes\n") 
     
-    d = df.select_dtypes('number')
+    d = X.select_dtypes('number')
     if len(d.columns) == 0: return print("\nDataframe has no numeric columns\n") 
 
     
@@ -534,17 +528,55 @@ def skew_df(df):
     return result
 
 
-def associationMeasures(X, y):
+
+def ascores(X, y):
     
-    # X has to be a dataframe
-    # you can use this to find association between X1 and X2
-    # will get a warning if any ints X['tax'] = X['tax'].astype(float)
+    '''
+    ----------   
     
+    Parameters
+    ----------
+    X:     dataframe to compute association measure with y
+    y:     series containing target values
+
+    Returns
+    -------
+    Dataframe with the following association scores:
+        
+    pearson:    pearson correlation
+    kendall:    kendall correlation
+    spearman:   spearman correlation
+    mic:        maximal information coefficient
+    dcor:       distance correlation 
+            
+    
+    Example 
+    -------
+    import exploretransform as et
+    df, X, y = et.loadBoston()
     X = X.select_dtypes('number')
-    if len(X.columns) == 0: return print("\nDataframe has no numeric columns\n") 
+    et.ascores(X, y)
     
+              pearson   kendall  spearman       mic      dcor
+    lon      0.322947  0.278908  0.420940  0.379753  0.435849
+    lat      0.006826  0.013724  0.021420  0.234796  0.167030
+    crim     0.389582  0.406992  0.562982  0.375832  0.528595
+    zn       0.360386  0.340738  0.438768  0.290145  0.404253
+    indus    0.484754  0.420263  0.580004  0.414140  0.543948
+    nox      0.429300  0.398342  0.565899  0.442515  0.523653
+    rm       0.696304  0.485182  0.635092  0.461610  0.711034
+    age      0.377999  0.391067  0.551747  0.414676  0.480248
+    dis      0.249315  0.313745  0.446392  0.316136  0.382746
+    tax      0.471979  0.418005  0.566999  0.336899  0.518158
+    ptratio  0.505655  0.397146  0.554168  0.371628  0.520320
+    b        0.334861  0.126766  0.186011  0.272469  0.385468
+    lstat    0.740836  0.671445  0.857447  0.615427  0.781028
+
+
+    ---------- 
+    
+    '''    
     r = pd.DataFrame()
-    
     mine = MINE(alpha=0.6, c=15) 
     
     for col in X.columns:
@@ -558,19 +590,32 @@ def associationMeasures(X, y):
     return r
 
    
-def corr(X, y = None, cut = 0.9, ret = 'name') :
+def corr(X, y = None, cut = 0.9, methodx = 'pearson', methody = None, ret = 'name',):
        
     '''
     ----------   
     
     Parameters
     ----------
-    X:      predictors dataframe
-    y:      target
-    cut:    correlation cutoff
-    ret:    'name'  returns names of columns
-            'ind'   returns indexes of columns
-            'X'    returns datafrme with columns dropped
+    X:          predictors dataframe
+    y:          target (unused in exploretransform v 1.0.0)
+    cut:        correlation cutoff
+    ret:        'name'  returns names of columns
+                'ind'   returns indexes of columns
+                'X'    returns datafrme with columns dropped
+    
+    methodx:    used to calculate correlations amount predictors
+    methody:*   used to calculate correlations between predictors & target
+                
+                *(unused in exploretransform v 1.0.0) 
+    
+    pearson:    standard correlation coefficient
+    kendall:    Kendall Tau correlation coefficient
+    spearman:   Spearman rank correlation
+    callable:   callable with input two 1d ndarrays and returning a float. Note 
+                that the returned matrix from corr will have 1 along the 
+                diagonals and will be symmetric regardless of the callable's 
+                behavior.
 
     Returns
     -------
@@ -587,18 +632,16 @@ def corr(X, y = None, cut = 0.9, ret = 'name') :
     Example 
     -------
 
-    source = 'http://lib.stat.cmu.edu/datasets/boston_corrected.txt'
-    X = pd.read_table(source, skiprows= 9)
-    X.columns = map(str.lower, X.columns)
-    # Keeping only numeric columns (non-target)
-    X = X.drop( ['obs.', 'town#', 'medv', 'cmedv', 'tract', 
-                    'rad', 'town', 'chas'],axis = 1)
+    import exploretransform as et
+    df, X, y = et.loadBoston()
+    et.corr(X, cut = 0.7)
+    ['nox', 'indus', 'age']
     
-    corrX(X, cut = 0.6)
-    ['nox', 'indus', 'lstat', 'dis']
+    et.corr(X, cut = 0.7, methodx = 'spearman')  
+    ['crim', 'nox', 'dis']
     
-    corrX(X, cut = 0.6, ret = 'ind')
-    [5, 4, 12, 8]
+    et.corr(X, cut = 0.7, methodx = 'spearman', ret = 'ind')
+    [3, 7, 10]
     
     ---------- 
     '''    
@@ -616,7 +659,7 @@ def corr(X, y = None, cut = 0.9, ret = 'name') :
     
 
     # Get correlation matrix and upper triagle
-    corr_mtx = X.corr().abs()
+    corr_mtx = X.corr(method = methodx).abs()
     avg_corr = corr_mtx.mean(axis = 1)
     up = corr_mtx.where(np.triu(np.ones(corr_mtx.shape), k=1).astype(np.bool))
     
@@ -647,14 +690,26 @@ def corr(X, y = None, cut = 0.9, ret = 'name') :
                 res = res.append(s, ignore_index = True)
     
     dropcols_names = calcDrop(res)
-    dropcols_idx = list(X.columns.get_indexer(dropcols_names))
     
-
-        
+    
+    dropcols_idx = list(X.columns.get_indexer(dropcols_names))
+         
     if ret == 'ind':    return(dropcols_idx)
     if ret == 'name':  return(dropcols_names)
     if ret == 'X':     return(X.drop(dropcols_names, axis = 1))
+
+  
+class ColumnSelect( BaseEstimator, TransformerMixin ):
+
+    def __init__( self, feature_names):
+        self.feature_names = feature_names
+       
+    def fit( self, X, y = None ):
+        return self 
     
+    def transform( self, X,  y = None ):
+        return X[self.feature_names]
+
 
 class CategoricalOtherLevel( BaseEstimator, TransformerMixin ):
     
@@ -701,15 +756,3 @@ class CorrelationFilter( BaseEstimator, TransformerMixin ):
     def transform( self, X, y = None ):
         return X.drop(self.names, axis = 1)
     
-  
-class ColumnSelect( BaseEstimator, TransformerMixin ):
-
-    def __init__( self, feature_names):
-        self.feature_names = feature_names
-       
-    def fit( self, X, y = None ):
-        return self 
-    
-    def transform( self, X,  y = None ):
-        return X[self.feature_names]
-
