@@ -245,6 +245,7 @@ def describe(X):
         else: return 0
         
     df = pd.DataFrame({'variable': X.columns})
+    df['obs'] = len(X)
     df['q_zer'] = X.apply(cntzero, axis = 0).values
     df['p_zer'] = round(df['q_zer'] / len(X) * 100, 2)
     df['q_na'] = X.isna().sum().values
@@ -252,7 +253,7 @@ def describe(X):
     df['q_inf'] = X.apply(cntinf, axis = 0).values
     df['p_inf'] = round(df['q_inf'] / len(X) * 100, 2)
     df['dtype'] = X.dtypes.to_frame('dtypes').reset_index()['dtypes']
-    df['lvls'] = X.nunique().values  
+
     
     return df
 
@@ -297,6 +298,9 @@ def glimpse(X):
     # grab first columns from describe dataframe
     g = describe(X)[['variable', 'dtype']]
     # create new column to store observations
+    g['lvls'] = X.nunique().values 
+    g['obs'] = len(X)
+    
     g['first_five_observations'] = ''
     
     # get the first 5 items for each variable
@@ -526,7 +530,6 @@ def skewstats(X):
     result.sort_values('magnitude', ascending = False, inplace=True)
     
     return result
-
 
 
 def ascores(X, y):
