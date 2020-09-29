@@ -90,14 +90,14 @@ def checkNested(obj):
     return False
 
 
-def calcDrop(res):
+def calcDrop(ct):
     
     '''
     ----------   
     
     Parameters
     ----------
-    res:    results table from correlation functions
+    ct:    results table from correlation functions
 
     Returns
     -------
@@ -110,24 +110,24 @@ def calcDrop(res):
     ---------- 
     '''    
     # All variables with correlation > cutoff
-    all_corr_vars = list(set(res['v1'].tolist() + res['v2'].tolist()))
+    all_corr_vars = list(set(ct['v1'].tolist() + ct['v2'].tolist()))
     
     # All unique variables in drop column
-    poss_drop = list(set(res['drop'].tolist()))
+    poss_drop = list(set(ct['drop'].tolist()))
 
     # Keep any variable not in drop column
     keep = list(set(all_corr_vars).difference(set(poss_drop)))
      
     # Drop any variables in same row as a keep variable
-    p = res[ res['v1'].isin(keep)  | res['v2'].isin(keep) ][['v1', 'v2']]
+    p = ct[ ct['v1'].isin(keep)  | ct['v2'].isin(keep) ][['v1', 'v2']]
     q = list(set(p['v1'].tolist() + p['v2'].tolist()))
     drop = (list(set(q).difference(set(keep))))
 
     # Remove drop variables from possible drop 
     poss_drop = list(set(poss_drop).difference(set(drop)))
     
-    # subset res dataframe to include possible drop pairs
-    m = res[ res['v1'].isin(poss_drop)  | res['v2'].isin(poss_drop) ][['v1', 'v2','drop']]
+    # subset ct dataframe to include possible drop pairs
+    m = ct[ ct['v1'].isin(poss_drop)  | ct['v2'].isin(poss_drop) ][['v1', 'v2','drop']]
         
     # remove rows that are decided (drop), take set and add to drops
     more_drop = set(list(m[~m['v1'].isin(drop) & ~m['v2'].isin(drop)]['drop']))
@@ -589,116 +589,7 @@ def ascores(X, y):
     
     return r
 
-   
-def corr(X, y = None, cut = 0.9, methodx = 'pearson', methody = None, ret = 'name',):
-       
-    '''
-    ----------   
-    
-    Parameters
-    ----------
-    X:          predictors dataframe
-    y:          target (unused in exploretransform v 1.0.0)
-    cut:        correlation cutoff
-    ret:        'name'  returns names of columns
-                'ind'   returns indexes of columns
-                'X'    returns datafrme with columns dropped
-    
-    methodx:    used to calculate correlations amount predictors
-    methody:*   used to calculate correlations between predictors & target
-                
-                *(unused in exploretransform v 1.0.0) 
-    
-    pearson:    standard correlation coefficient
-    kendall:    Kendall Tau correlation coefficient
-    spearman:   Spearman rank correlation
-    callable:   callable with input two 1d ndarrays and returning a float. Note 
-                that the returned matrix from corr will have 1 along the 
-                diagonals and will be symmetric regardless of the callable's 
-                behavior.
 
-    Returns
-    -------
-    This function analyzes the correlation matrix for the dataframe and 
-    returns a list of columns to drop based on the correlation cutoff.  It
-    uses the average correlation for the row and column in the matrix and 
-    compares it with the cell value to decide on potential drop candidates.
-    
-    It uses the calcDrop() function in order to calculate which columns 
-    should be dropped.  For more information please visit:
-        
-    https://towardsdatascience.com/are-you-dropping-too-many-correlated-features-d1c96654abe6
-        
-    Example 
-    -------
-
-    import exploretransform as et
-    df, X, y = et.loadBoston()
-    et.corr(X, cut = 0.7)
-    ['nox', 'indus', 'age']
-    
-    et.corr(X, cut = 0.7, methodx = 'spearman')  
-    ['crim', 'nox', 'dis']
-    
-    et.corr(X, cut = 0.7, methodx = 'spearman', ret = 'ind')
-    [3, 7, 10]
-    
-    ---------- 
-    '''    
-
-    
-    # Input Checks
-    if isinstance(X, (pd.core.frame.DataFrame)): pass
-    else: return print("\nFunction only accetps dataframes\n")
-    if checkNested(X): return print("\nPlease collapse any nested values"  + 
-                                     "in your dataframe\n")
-
-    # check for at least 2 numeric columns
-    if len(X.select_dtypes('number').columns) >= 2: pass
-    else: return print("Dataframe must have 2 or more numeric columns")
-    
-
-    # Get correlation matrix and upper triagle
-    corr_mtx = X.corr(method = methodx).abs()
-    avg_corr = corr_mtx.mean(axis = 1)
-    up = corr_mtx.where(np.triu(np.ones(corr_mtx.shape), k=1).astype(np.bool))
-    
-    dropcols = list()
-    
-    res = pd.DataFrame(columns=(['v1', 'v2', 'v1.target', 
-                                 'v2.target','corr', 'drop' ]))
-    
-    for row in range(len(up)-1):
-        col_idx = row + 1
-        for col in range (col_idx, len(up)):
-            if(corr_mtx.iloc[row, col] > cut):
-                if(avg_corr.iloc[row] > avg_corr.iloc[col]): 
-                    dropcols.append(row)
-                    drop = corr_mtx.columns[row]
-                else: 
-                    dropcols.append(col)
-                    drop = corr_mtx.columns[col]
-                
-                s = pd.Series([ corr_mtx.index[row],
-                up.columns[col],
-                avg_corr[row],
-                avg_corr[col],
-                up.iloc[row,col],
-                drop],
-                index = res.columns)
-        
-                res = res.append(s, ignore_index = True)
-    
-    dropcols_names = calcDrop(res)
-    
-    
-    dropcols_idx = list(X.columns.get_indexer(dropcols_names))
-         
-    if ret == 'ind':    return(dropcols_idx)
-    if ret == 'name':  return(dropcols_names)
-    if ret == 'X':     return(X.drop(dropcols_names, axis = 1))
-
-  
 class ColumnSelect( BaseEstimator, TransformerMixin ):
 
     def __init__( self, feature_names):
@@ -742,17 +633,125 @@ class CategoricalOtherLevel( BaseEstimator, TransformerMixin ):
 
 class CorrelationFilter( BaseEstimator, TransformerMixin ):
            
-    def __init__(self, cut = 0.9, corrType = 'X'):
-        self.corrType = corrType
+    def __init__(self, cut = 0.9, methodx = 'pearson', methody = None):
         self.cut = cut
+        self.methodx = methodx
+        self.methody = methody
+        self.ct = pd.DataFrame()
         self.names = []
      
     def fit( self, X, y = None ):
-        if self.corrType == 'X': 
-            self.names = corr(X, cut = self.cut)
-                        
+        self.ct = corrtable(X, y, 
+                               cut = self.cut, 
+                               methodx = self.methodx, 
+                               methody = self.methody, 
+                               full = True)
+        
+        self.names = calcDrop(self.ct)
         return self
     
     def transform( self, X, y = None ):
         return X.drop(self.names, axis = 1)
     
+
+def corrtable(X, y = None, cut = 0.9, methodx = 'spearman', methody = None, full = False):
+    
+    
+    '''
+    ----------   
+    
+    Parameters
+    ----------
+    X:          predictors dataframe
+    y:          target (unused in exploretransform v 1.0.0)
+    cut:        correlation cutoff
+    full:       True:       Returns the full corrtable with drop column
+                False:      (default) Returns without the drop column
+    
+    methodx:    used to calculate correlations amount predictors
+    methody*:   used to calculate correlations between predictors & target
+                *(unused in exploretransform v 1.0.0) 
+    
+    pearson:    standard correlation coefficient
+    kendall:    Kendall Tau correlation coefficient
+    spearman:   Spearman rank correlation
+    callable:   callable with input two 1d ndarrays and returning a float. Note 
+                that the returned matrix from corr will have 1 along the 
+                diagonals and will be symmetric regardless of the callable's 
+                behavior.
+
+    Returns
+    -------
+    This function analyzes the correlation matrix for the dataframe. It
+    uses the average correlation for the row and column in the matrix and 
+    compares it with the cell value to decide on potential drop candidates.
+    
+    Columns:
+    
+    v1          varaible 1
+    v2          variable 2
+    v1.target   metric used to compare v1 and v2 for drop
+    v2.target   metric used to compare v1 and v2 for drop
+    corr        pairwise correlation based on method
+    drop        if the correlation > threshold, the drop decision 
+    
+    For more information please visit:
+        
+    https://towardsdatascience.com/are-you-dropping-too-many-correlated-features-d1c96654abe6
+        
+    Example 
+    -------
+    import exploretransform as et
+    df, X, y = et.loadBoston()
+    X = X.select_dtypes('number')  
+    et.corrtable(X, cut = 0.7, full = True)    
+
+           v1       v2  v1.target  v2.target      corr drop
+    52    nox      dis   0.578860   0.526551  0.880015  nox
+    25   crim      nox   0.562681   0.578860  0.821465  nox
+    63    age      dis   0.525682   0.526551  0.801610  dis
+    51    nox      age   0.578860   0.525682  0.795153  nox
+    42  indus      nox   0.549707   0.578860  0.791189  nox
+    ..    ...      ...        ...        ...       ...  ...
+    8     lon      tax   0.242329   0.486066  0.050237     
+    22    lat    lstat   0.159767   0.522203  0.039065     
+    14    lat    indus   0.159767   0.549707  0.021472     
+    18    lat      dis   0.159767   0.526551  0.012832     
+    20    lat  ptratio   0.159767   0.391352  0.005332       
+    
+    ---------- 
+    '''    
+
+    # Get correlation matrix and upper triagle
+    corr_mtx = X.corr(method = methodx).abs()
+    avg_corr = corr_mtx.mean(axis = 1)
+    up = corr_mtx.where(np.triu(np.ones(corr_mtx.shape), k=1).astype(np.bool))
+        
+    ct = pd.DataFrame(columns=(['v1', 'v2', 'v1.target', 
+                                 'v2.target','corr', 'drop' ]))
+    
+    for row in range(len(up)-1):
+        col_idx = row + 1
+        for col in range (col_idx, len(up)):
+            drop = ' '
+            if(corr_mtx.iloc[row, col] > cut):
+                if(avg_corr.iloc[row] > avg_corr.iloc[col]): 
+                    drop = corr_mtx.columns[row]
+                else: 
+                    drop = corr_mtx.columns[col]
+            
+            # Populate results table
+            s = pd.Series([ corr_mtx.index[row],
+            up.columns[col],
+            avg_corr[row],
+            avg_corr[col],
+            up.iloc[row,col],
+            drop],
+            index = ct.columns)
+    
+            ct = ct.append(s, ignore_index = True)
+    
+    ct.sort_values('corr', ascending = False, inplace=True)
+    
+    if full:    return ct
+    else:       return ct.drop('drop', axis = 1)
