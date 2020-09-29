@@ -17,8 +17,8 @@ from minepy import MINE
 from scipy import stats
 from dcor import distance_correlation
 
-
-def checkNested(obj):
+        
+def nested(obj, retloc = False):
     
     '''
     ----------   
@@ -26,10 +26,15 @@ def checkNested(obj):
     Parameters
     ----------
     obj:    a list, series, or dataframe
+    locs:   True or False
     
     Returns
     -------
-    True if any nested objects reside in passed object
+    
+    locs = 'True'   Returns locations of nested objects:
+                    For dataframes, it returns tuples
+                    For other objects it returns a list of indicies
+    locs = 'False'  Returns true if any nested objects reside in passed object
     
     Example 
     -------
@@ -39,8 +44,11 @@ def checkNested(obj):
     d = pd.DataFrame({'first' : [1, 2, 3, (1,2,3), 4, 5, 6],
                   'second': [2, 4, 5, [1,3,4], 6, 7, 8]}
                  , columns = ['first', 'second'])
+    
+    checkNested(d, locs = True)
+    [(3, 0), (3, 1)]
 
-    checkNested(a)
+    checkNested(d)
     Out[59]: False
     
     checkNested(b)
@@ -56,8 +64,24 @@ def checkNested(obj):
     ---------- 
     '''  
     
+    # import pandas as pd
+    # import numpy as np
+    # a = [1,2,3]
+    # b = [a,a]
+    # c = (1,2,3)
+    # d = pd.DataFrame({'first' : [1, 2, 3, (1,2,3), 4, 5, 6],
+    #               'second': [2, 4, 5, [1,3,4], 6, 7, 8]}
+    #              , columns = ['first', 'second'])
+
+    # e = d['second']
+    
+    # obj = d
+    
     # object types
     otypes = (list, pd.core.series.Series, pd.core.frame.DataFrame)
+    
+    # store locations of nested items
+    locs = list() 
     
     if isinstance(obj, otypes): pass
     else: return print("\nFunction only accepts:\n" +
@@ -78,16 +102,20 @@ def checkNested(obj):
         for row in range(len(obj)):
             for col in range(len(obj.columns)):
                 if isinstance(obj.iloc[row,col], ntypes):
-                    return True
-    else: pass
+                    locs.append((row,col))
+                    # return True
+    else: 
+        
+        for i in range(len(obj)):
+            if isinstance(obj[i], ntypes): 
+                #return True
+                locs.append(i)
+            
     
-    # non dataframes
-    for item in obj:
-        if isinstance(item, otypes): 
-            return True
-       
-    
-    return False
+    if retloc: return locs
+    else: return len(locs) > 0
+
+
 
 
 def loadBoston(t = 'all'):
@@ -177,7 +205,7 @@ def describe(X):
    
     # Input Checks
     if isinstance(X, (pd.core.frame.DataFrame)):
-        if checkNested(X): 
+        if nested(X): 
             print("\nPlease collapse any nested values in your dataframe\n")
             return
         else: 
@@ -243,7 +271,7 @@ def glimpse(X):
     # Input Checks
     if isinstance(X, (pd.core.frame.DataFrame)): pass
     else: return print("\nFunction only accetps dataframes\n")
-    if checkNested(X): return print("\nPlease collapse any nested values in your dataframe\n")
+    if nested(X): return print("\nPlease collapse any nested values in your dataframe\n")
 
 
     
