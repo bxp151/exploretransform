@@ -49,7 +49,7 @@ def test_nested_bool():
 
 def test_loadBoston_df():
     df,X,y = et.loadBoston()
-    dfpickle = pd.read_pickle(base + 'data/bostondf.pkl')
+    dfpickle = pd.read_pickle(base + 'data/loadboston.pkl')
     assert df.equals(dfpickle)
 
 ###############################################################################
