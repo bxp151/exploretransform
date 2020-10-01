@@ -196,13 +196,12 @@ def describe(X):
     # Input Checks
     if isinstance(X, (pd.core.frame.DataFrame)):
         if nested(X): 
-            print("\nPlease collapse any nested values in your dataframe\n")
-            return
+            return "Please collapse any nested values in your dataframe"     
         else: 
             pass
     else:
-        print("\nFunction only accetps dataframes\n")
-        return
+        return "Function only accetps dataframes"
+    
     
     # counts zeros for numeric dtype and returns zero for others
     def cntzero(series):

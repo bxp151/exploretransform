@@ -11,7 +11,7 @@ import exploretransform as et
 import pandas as pd
 
 ###############################################################################
-#  nested()
+#  nested(obj, retloc = False)
 ###############################################################################
 
 def nested_load_data():
@@ -44,61 +44,24 @@ def test_nested_bool():
 
 
 ###############################################################################
-#  nested()
+#  loadBoston()
 ###############################################################################
 
+def test_loadBoston_df():
+    df,X,y = et.loadBoston()
+    dfpickle = pd.read_pickle(base + 'data/bostondf.pkl')
+    assert df.equals(dfpickle)
+
+###############################################################################
+#  describe(X)
+###############################################################################
+
+# pass string
+# def test_describe_str:
+
+# pass nested
 
 
-
-'''
-Signature: et.nested(obj, retloc=False)
-
-Docstring:
-----------   
-
-Parameters
-----------
-obj:    a list, series, or dataframe
-locs:   True or False
-
-Returns
--------
-
-locs = 'True'   Returns locations of nested objects:
-                For dataframes, it returns tuples
-                For other objects it returns a list of indicies
-locs = 'False'  Returns true if any nested objects reside in passed object
-
-Example 
--------
-a = [1,2,3]
-b = [a,a]
-c = (1,2,3)
-d = pd.DataFrame({'first' : [1, 2, 3, (1,2,3), 4, 5, 6],
-              'second': [2, 4, 5, [1,3,4], 6, 7, 8]}
-             , columns = ['first', 'second'])
-
-checkNested(d, locs = True)
-[(3, 0), (3, 1)]
-
-checkNested(d)
-Out[59]: False
-
-checkNested(b)
-Out[60]: True
-
-checkNested(c)
-Out[61]: False
-
-checkNested(d)
-Out[62]: True
-
-
----------- 
-'''
-
-
-
-
+# pass legit df
 
 
