@@ -84,8 +84,9 @@ def nested(obj, retloc = False):
     locs = list() 
     
     if isinstance(obj, otypes): pass
-    else: return print("\nFunction only accepts:\n" +
-                       "List, Series, or Dataframe\n")
+    else: return "Function only accepts: List, Series, or Dataframe"
+    # else: return print("\nFunction only accepts:\n" +
+    #                    "List, Series, or Dataframe\n")
     
     
     # nested types    
@@ -117,43 +118,33 @@ def nested(obj, retloc = False):
 
 
 
-def loadBoston(t = 'all'):
+def loadBoston():
     '''
     ----------   
     
     Parameters
     ----------
-    t: option for return set 
-        'all' (default)  all columns with dtypes fixed and columns dropped
-        'num'            only numeric dtypes
+    None
     
     Returns
     -------
-    Boston Dataset, 2 objects
+    Boston corrected data objects:
         df  X and y     dataframe    
         X   predictors  dataframe
         y   target      series
     
     -------
     '''
-    source = 'http://lib.stat.cmu.edu/datasets/boston_corrected.txt'
+    source = 'https://raw.githubusercontent.com/bxp151/exploretransform/master/data/boston_corrected.txt'
     df = pd.read_table(source, skiprows= 9)
     df.columns = map(str.lower, df.columns)   
-        
     df = df.drop( ['obs.', 'town#', 'medv', 'tract'],axis = 1)
-    
-    if t == 'all':
-        
-        df['chas'] = df['chas'].astype('category')
+    df['chas'] = df['chas'].astype('category')
 
-        # Modify rad as ordinal
-        r = pd.Series(range(df['rad'].min(), df['rad'].max() + 1))
-        rad_cat = CategoricalDtype(categories=list(r), ordered=True)
-        df['rad'] = df['rad'].astype(rad_cat)
-    
-    else:
-        df = df.drop( ['rad', 'town', 'chas'],axis = 1)
-
+    # Modify rad as ordinal
+    r = pd.Series(range(df['rad'].min(), df['rad'].max() + 1))
+    rad_cat = CategoricalDtype(categories=list(r), ordered=True)
+    df['rad'] = df['rad'].astype(rad_cat)
     
     x = df.drop('cmedv', axis = 1)
     y = df['cmedv']  
