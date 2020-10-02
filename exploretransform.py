@@ -118,7 +118,7 @@ def nested(obj, retloc = False):
 
 
 
-def loadBoston():
+def loadboston():
     '''
     ----------   
     
@@ -150,8 +150,8 @@ def loadBoston():
     y = df['cmedv']  
     
     return df, x, y
-    
-
+  
+  
 def describe(X):
     
 
@@ -179,7 +179,7 @@ def describe(X):
     Example 
     -------
     import exploretransform as et
-    df, X, y = et.loadBoston()
+    df, X, y = et.loadboston()
     et.describe(df.iloc[:,0:5])
     
       variable  q_zer  p_zer  q_na  p_na  q_inf  p_inf    dtype  lvls
@@ -244,7 +244,7 @@ def glimpse(X):
     Example 
     -------
     import exploretransform as et
-    df, X, y = et.loadBoston()
+    df, X, y = et.loadboston()
     et.glimpse(df.iloc[:,0:5])
     
 
@@ -259,14 +259,12 @@ def glimpse(X):
     '''        
     # Input Checks
     if isinstance(X, (pd.core.frame.DataFrame)): pass
-    else: return print("\nFunction only accetps dataframes\n")
-    if nested(X): return print("\nPlease collapse any nested values in your dataframe\n")
+    else: return "Function only accetps dataframes"
+    if nested(X): return "Please collapse any nested values in your dataframe"
 
-
-    
-    # grab first columns from describe dataframe
-    g = describe(X)[['variable', 'dtype']]
-    # create new column to store observations
+    g = pd.DataFrame({'variable': X.columns, 
+                      'dtype': X.dtypes.to_frame('dtypes').reset_index()['dtypes']}, 
+                     index=(range(0,len(X.columns))))
     g['lvls'] = X.nunique().values 
     g['obs'] = len(X)
     
@@ -275,14 +273,9 @@ def glimpse(X):
     # get the first 5 items for each variable
     # transpose the data frame and store the values
     x = X.apply((pd.DataFrame.head), axis = 0 ).T.values
-    
-    # populate values into new dataframe column
     for i in range(0, len(x)):
-        g['first_five_observations'][i] = x[i]
+        g.at[i,'first_five_observations'] = x[i]
     
-    #r = '\nRows: ' + str(len(X))
-    #c = 'Columns: ' + str(len(X.columns))
-    #g = print(r + '\n' + c + '\n\n' + str(g))
     
     return g
 
@@ -302,7 +295,7 @@ def plotfreq(freqdf):
     Example 
     -------
     import exploretransform as et
-    df, X, y = et.loadBoston()
+    df, X, y = et.loadboston()
     et.plotfreq(et.freq(X['town']))
 
     Warning 
@@ -377,7 +370,7 @@ def freq(srs):
     Example 
     -------
     import exploretransform as et
-    df, X, y = et.loadBoston()
+    df, X, y = et.loadboston()
     et.freq(X['town'])
     
                      town  freq  perc    cump
@@ -398,7 +391,7 @@ def freq(srs):
     
     # input checks
     if isinstance(srs, (pd.core.series.Series)): pass
-    else: return print("\nFunction only accetps series\n") 
+    else: return "Function only accetps series"
             
     # Create frequency dataframe
     cnts = srs.value_counts()
@@ -463,7 +456,7 @@ def corrtable(X, y = None, cut = 0.9, methodx = 'spearman', methody = None, full
     Example 
     -------
     import exploretransform as et
-    df, X, y = et.loadBoston()
+    df, X, y = et.loadboston()
     X = X.select_dtypes('number')  
     et.corrtable(X, cut = 0.7, full = True)    
 
@@ -518,7 +511,7 @@ def corrtable(X, y = None, cut = 0.9, methodx = 'spearman', methody = None, full
     else:       return ct.drop('drop', axis = 1)
 
 
-def calcDrop(ct):
+def calcdrop(ct):
     
     '''
     ----------   
@@ -590,7 +583,7 @@ def skewstats(X):
     Example 
     -------
     import exploretransform as et
-    df, X, y = et.loadBoston()
+    df, X, y = et.loadboston()
     et.skewstats(df)
     
                dtype  skewness           magnitude
@@ -615,10 +608,10 @@ def skewstats(X):
     
     # input checks
     if isinstance(X, (pd.core.frame.DataFrame)): pass
-    else: return print("\nFunction only accetps dataframes\n") 
+    else: return "Function only accetps dataframes" 
     
     d = X.select_dtypes('number')
-    if len(d.columns) == 0: return print("\nDataframe has no numeric columns\n") 
+    if len(d.columns) == 0: return "Dataframe has no numeric columns" 
 
     
 
@@ -659,7 +652,7 @@ def ascores(X, y):
     
     Parameters
     ----------
-    X:     dataframe to compute association measure with y
+    X:     numeric dataframe to compute association measure with y
     y:     series containing target values
 
     Returns
@@ -676,7 +669,7 @@ def ascores(X, y):
     Example 
     -------
     import exploretransform as et
-    df, X, y = et.loadBoston()
+    df, X, y = et.loadboston()
     X = X.select_dtypes('number')
     et.ascores(X, y)
     
@@ -729,7 +722,7 @@ class ColumnSelect( BaseEstimator, TransformerMixin ):
     Example 
     -------
     import exploretransform as et
-    df, X, y = et.loadBoston()
+    df, X, y = et.loadboston()
     colnames = ['lat', 'lon']
     et.ColumnSelect(colnames).fit_transform(X)
 
@@ -780,7 +773,7 @@ class CategoricalOtherLevel( BaseEstimator, TransformerMixin ):
     Example 
     -------
     import exploretransform as et
-    df, X, y = et.loadBoston()
+    df, X, y = et.loadboston()
     colnames = ['town', 'lat']
     cs = et.ColumnSelect(colnames).fit_transform(X)
     h = et.CategoricalOtherLevel('town', 0.015).fit_transform(cs)
@@ -856,13 +849,13 @@ class CorrelationFilter( BaseEstimator, TransformerMixin ):
 
     Returns
     -------
-    Dataframe with columns removed using logic from corrtable() and calcDrop()
+    Dataframe with columns removed using logic from corrtable() and calcdrop()
                               
     Example 
     -------
 
     import exploretransform as et
-    df, X, y = et.loadBoston()
+    df, X, y = et.loadboston()
     colnames = X.select_dtypes('number').columns
     cs = et.ColumnSelect(colnames).fit_transform(X)
     cf = et.CorrelationFilter(cut = 0.5).fit_transform(cs)
@@ -898,7 +891,7 @@ class CorrelationFilter( BaseEstimator, TransformerMixin ):
                                methody = self.methody, 
                                full = True)
         
-        self.names = calcDrop(self.ct)
+        self.names = calcdrop(self.ct)
         return self
     
     def transform( self, X, y = None ):

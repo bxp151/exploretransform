@@ -1,67 +1,181 @@
 # -*- coding: utf-8 -*-
 """
-Spyder Editor
 
-This is a temporary script file.
+Pytest for exploretransform
+
 """
-import os
-base = '/Users/bxp151/ml/000_special_projects/01_exploretransform/exploretransform/'
-os.chdir(base)
+import inspect, os.path
+# filename = inspect.getframeinfo(inspect.currentframe()).filename
+# path = os.path.dirname(os.path.abspath(filename))
+path = '/Users/bxp151/ml/000_special_projects/01_exploretransform/exploretransform'
+os.chdir(path)
+
 import exploretransform as et
 import pandas as pd
-
+   
 ###############################################################################
 #  nested(obj, retloc = False)
 ###############################################################################
-
-def nested_load_data():
-    
-    d0 = [1,2,3]
-    d1 = [1,[1,2,3]]
-    d2 = pd.Series([1,2,3])
-    d3 = pd.Series([1,[1,2,3],3])
-    d4 = pd.DataFrame({'first' : [1, 2, 3, 4, 5, 6],
-              'second': [2, 4, 5, 6, 7, 8]}
-              , columns = ['first', 'second'])
-    d5 = pd.DataFrame({'first' : [1, 2, 3, (1,2,3), 4, 5, 6],
-              'second': [2, 4, 5, [1,3,4], 6, 7, 8]}
-              , columns = ['first', 'second'])
-
-    return [d0,d1,d2,d3,d4,d5]
-    
        
 def test_nested_typechk():
-    assert et.nested(str()) == "Function only accepts: List, Series, or Dataframe"
+    d0 = 'string'
+    assert et.nested(d0) == "Function only accepts: List, Series, or Dataframe"
     
 def test_nested_locs():
-    d = nested_load_data()
-    assert et.nested(d[3], retloc=True) == [1]
-    assert et.nested(d[5], retloc=True) == [(3, 0), (3, 1)]
+    d1 = pd.Series([1,[1,2,3],3])
+    d2 = pd.DataFrame({'first' : [1, 2, 3, (1,2,3), 4, 5, 6],
+      'second': [2, 4, 5, [1,3,4], 6, 7, 8]}
+      , columns = ['first', 'second'])
+    assert et.nested(d1, retloc=True) == [1]
+    assert et.nested(d2, retloc=True) == [(3, 0), (3, 1)]
         
 def test_nested_bool():
-    d = nested_load_data()
-    assert et.nested(d[2]) == False
-
+    d3 = pd.Series([1,2,3])
+    assert et.nested(d3) == False
+    
 
 ###############################################################################
-#  loadBoston()
+#  loadboston()
 ###############################################################################
 
-def test_loadBoston_df():
-    df,X,y = et.loadBoston()
-    dfpickle = pd.read_pickle(base + 'data/loadboston.pkl')
-    assert df.equals(dfpickle)
+def test_loadboston_df():
+    d0,X,y = et.loadboston()
+    d1 = pd.read_pickle(path + '/data/loadboston.pkl')
+    assert d0.equals(d1)
+
 
 ###############################################################################
 #  describe(X)
 ###############################################################################
 
-# pass string
-# def test_describe_str:
+def test_describe_type():
+    d0 = 'string'
+    assert et.describe(d0) == "Function only accetps dataframes"
 
-# pass nested
+def test_describe_nest():
+    d1 = pd.DataFrame({'first' : [1, 2, 3, (1,2,3), 4, 5, 6],
+      'second': [2, 4, 5, [1,3,4], 6, 7, 8]} ,columns = ['first', 'second'])
+    assert et.describe(d1) == "Please collapse any nested values in your dataframe"
+    
+
+def test_describe_pos():
+    d0,X,y = et.loadboston()
+    # Adding NA and inf values to dataframe
+    d0.at[0, 'town'] = None
+    d0.at[0,'lon'] = float('inf')
+    d1 = pd.read_pickle(path + "/data/describe.pkl") 
+    assert et.describe(d0).equals(d1)
 
 
-# pass legit df
+###############################################################################
+#  glimpse(X) 
+###############################################################################
+
+def test_glimpse_pos():
+    d0,X,y = et.loadboston()
+    d1 = pd.read_pickle(path + "/data/glimpse.pkl") 
+    assert et.glimpse(d0).equals(d1)
+    
+def test_glimpse_typechk():
+    d0 = 'string'
+    assert et.glimpse(d0) == "Function only accetps dataframes"
+
+def test_glimpse_nest():
+    d0 = pd.DataFrame({'first' : [1, 2, 3, (1,2,3), 4, 5, 6],
+      'second': [2, 4, 5, [1,3,4], 6, 7, 8]} ,columns = ['first', 'second'])
+    assert et.glimpse(d0) == "Please collapse any nested values in your dataframe"
+
+###############################################################################
+#  plotfreq(freqdf) 
+###############################################################################  
+
+# Manually compare outputs:
+# et.plotfreq(et.freq(X['town'])) to (path + "/data/plotfreq.jpg")
+
+###############################################################################
+#  def freq(srs)
+############################################################################### 
+
+def test_freq_typechk():
+    d0 = [1,2,3]
+    assert et.freq(d0) == "Function only accetps series"
+
+
+def test_freq():
+    d0,X,y = et.loadboston()
+    d1 = pd.read_pickle(path + "/data/freq.pkl") 
+    d2 = et.freq(d0['rad'])
+    assert d1.equals(d2)
+
+
+###############################################################################
+#  corrtable(X, y = None, cut = 0.9, methodx = 'spearman', methody = None, full = False)
+############################################################################### 
+
+def test_corrtable():
+    df,d0,y = et.loadboston()
+    d1 = pd.read_pickle(path + "/data/corrtable.pkl")
+    assert et.corrtable(d0,cut = 0.5).equals(d1)
+    
+
+###############################################################################
+#  def calcdrop(ct)
+############################################################################### 
+
+def test_calcdrop_pos():
+    df,d0,y = et.loadboston()
+    d1 = et.corrtable(d0,cut = 0.7, full = True)
+    d2 = et.calcdrop(d1)
+    d3 = ['nox', 'indus', 'dis', 'crim']
+    assert set(d2) == set(d3)
+
+
+###############################################################################
+#  skewstats(X)
+############################################################################### 
+
+
+def test_skewstats_typechk():
+    d0 = 'string'
+    assert et.skewstats(d0) == "Function only accetps dataframes"
+
+def test_skewstats_nonum():
+    df,d0,y = et.loadboston()
+    d0 = d0[['town', 'rad']]
+    assert et.skewstats(d0) == "Dataframe has no numeric columns"
+    
+
+def test_skewstats_pos():
+    df,d0,y = et.loadboston()
+    d1 = pd.read_pickle(path + "/data/skewstats.pkl")
+    assert et.skewstats(d0).equals(d1)
+
+
+###############################################################################
+#  ascores(X, y)
+############################################################################### 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
