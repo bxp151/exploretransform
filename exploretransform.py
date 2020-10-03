@@ -304,9 +304,7 @@ def plotfreq(freqdf):
     
     ---------- 
     '''    
-    
-    
-    # df.columns[1:4]).isin(['freq', 'perc', 'cump'])
+
     
     # input checks
     if isinstance(freqdf, (pd.core.frame.DataFrame)): pass
@@ -692,6 +690,11 @@ def ascores(X, y):
     ---------- 
     
     '''    
+    # Convert any ints to float for dcor calculation
+    if len(X.select_dtypes(int).columns) > 0:
+        for col in X.select_dtypes(int).columns:
+            X[col] = X[col].astype('float')
+        
     r = pd.DataFrame()
     mine = MINE(alpha=0.6, c=15) 
     

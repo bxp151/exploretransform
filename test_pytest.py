@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
 """
 
-Pytest for exploretransform
+pytest: exploretransform
 
 """
-import inspect, os.path
-# filename = inspect.getframeinfo(inspect.currentframe()).filename
-# path = os.path.dirname(os.path.abspath(filename))
-path = '/Users/bxp151/ml/000_special_projects/01_exploretransform/exploretransform'
-os.chdir(path)
 
+import inspect, os.path
+filename = inspect.getframeinfo(inspect.currentframe()).filename
+path = os.path.dirname(os.path.abspath(filename))
+# path = '/Users/bxp151/ml/000_special_projects/01_exploretransform/exploretransform'
+# os.chdir(path)
 import exploretransform as et
 import pandas as pd
    
+
+
 ###############################################################################
 #  nested(obj, retloc = False)
 ###############################################################################
@@ -33,7 +35,6 @@ def test_nested_bool():
     d3 = pd.Series([1,2,3])
     assert et.nested(d3) == False
     
-
 ###############################################################################
 #  loadboston()
 ###############################################################################
@@ -42,7 +43,6 @@ def test_loadboston_df():
     d0,X,y = et.loadboston()
     d1 = pd.read_pickle(path + '/data/loadboston.pkl')
     assert d0.equals(d1)
-
 
 ###############################################################################
 #  describe(X)
@@ -65,7 +65,6 @@ def test_describe_pos():
     d0.at[0,'lon'] = float('inf')
     d1 = pd.read_pickle(path + "/data/describe.pkl") 
     assert et.describe(d0).equals(d1)
-
 
 ###############################################################################
 #  glimpse(X) 
@@ -107,7 +106,6 @@ def test_freq():
     d2 = et.freq(d0['rad'])
     assert d1.equals(d2)
 
-
 ###############################################################################
 #  corrtable(X, y = None, cut = 0.9, methodx = 'spearman', methody = None, full = False)
 ############################################################################### 
@@ -115,8 +113,7 @@ def test_freq():
 def test_corrtable():
     df,d0,y = et.loadboston()
     d1 = pd.read_pickle(path + "/data/corrtable.pkl")
-    assert et.corrtable(d0,cut = 0.5).equals(d1)
-    
+    assert et.corrtable(d0,cut = 0.5).equals(d1)   
 
 ###############################################################################
 #  def calcdrop(ct)
@@ -129,11 +126,9 @@ def test_calcdrop_pos():
     d3 = ['nox', 'indus', 'dis', 'crim']
     assert set(d2) == set(d3)
 
-
 ###############################################################################
 #  skewstats(X)
 ############################################################################### 
-
 
 def test_skewstats_typechk():
     d0 = 'string'
@@ -150,32 +145,38 @@ def test_skewstats_pos():
     d1 = pd.read_pickle(path + "/data/skewstats.pkl")
     assert et.skewstats(d0).equals(d1)
 
-
 ###############################################################################
 #  ascores(X, y)
 ############################################################################### 
 
+def test_ascores_pos():
+    df,d0,d1 = et.loadboston()
+    d0 = d0.select_dtypes('number')
+    d2 = pd.read_pickle(path + "/data/ascores.pkl")
+    assert et.ascores(d0, d1).equals(d2)
 
+###############################################################################
+# class ColumnSelect( BaseEstimator, TransformerMixin ):
+###############################################################################
 
+def test_ColumnSelect_pos():
+    df,d0,y = et.loadboston()
+    assert et.ColumnSelect('lon').fit_transform(d0).equals(d0['lon'])
 
+###############################################################################
+# class CategoricalOtherLevel( BaseEstimator, TransformerMixin )
+###############################################################################
 
+def test_CategoricalOtherLevel_pos():
+    df,d0,y = et.loadboston()
+    d1 = pd.read_pickle(path + "/data/categoricalotherlevel.pkl")
+    assert et.CategoricalOtherLevel('town', 0.015).fit_transform(d0).equals(d1)
 
+###############################################################################
+# class CorrelationFilter( BaseEstimator, TransformerMixin )
+###############################################################################
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+def test_CorrelationFilter_pos():
+    df,d0,y = et.loadboston()
+    d1 = pd.read_pickle(path + "/data/correlationfilter.pkl")
+    assert et.CorrelationFilter(cut = 0.7).fit_transform(d0).equals(d1)
