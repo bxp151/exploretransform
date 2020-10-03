@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-
-pytest: exploretransform
-
-"""
-
 import inspect, os.path
 filename = inspect.getframeinfo(inspect.currentframe()).filename
 path = os.path.dirname(os.path.abspath(filename))

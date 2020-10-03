@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Sep 13 09:06:09 2020
-
-@author: bxp151
-"""
-
 import numpy as np
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
