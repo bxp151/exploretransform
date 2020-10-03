@@ -340,7 +340,7 @@ def freq(srs):
     -------
     Dataframe with the following columns:
         
-    col:    Unique levels in the column
+    <name>: The unique values of the series
     freq:   Count of each level
     perc:   Percent each level contributes
     cump:   Cumulative percent 
