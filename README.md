@@ -3,10 +3,6 @@
 
 
 
-[![NPM Version][npm-image]][npm-url]
-[![Build Status][travis-image]][travis-url]
-[![Downloads Stats][npm-downloads]][npm-url]
-
 Exploretransform is a collection of data exploration functions and custom pipline trasformers.  It's aims to streamline exploratory data analysis and extend some of scikit's data transformers.
 &nbsp;
 
@@ -19,25 +15,9 @@ Python PYPI:
 ```
 &nbsp;
 	
-## How to use exploretransform
-
-Import the exploretransform package and load the included Boston housing corrected dataset:
 
 
-```python
-import exploretransform as et
-```
-
-
-```python
-df, X, y = et.loadboston()
-```
-
-
-&nbsp;
-
-
-### Summary of Functions and Classes
+## Summary of Functions and Classes
 
 
 Function / Class | Description
@@ -55,6 +35,23 @@ ascores | calculates various association scores (kendall, pearson, mic, dcor, sp
 ColumnSelect | custom transformer that selects columns for pipeline
 CategoricalOtherLevel | custom transformer that creates "other" level in categorical / ordinal data based on threshold
 CorrelationFilter | custom transformer that filters numeric features based on pairwise correlation
+
+&nbsp;
+
+## How to use exploretransform
+
+Import the exploretransform package and load the included Boston housing corrected dataset:
+
+
+```python
+import exploretransform as et
+```
+
+
+```python
+df, X, y = et.loadboston()
+```
+
 
 &nbsp;
 
@@ -295,15 +292,7 @@ dtype | Python dtype
 
 &nbsp;
 
-## Development setup
 
-Describe how to install all development dependencies and how to run an automated test-suite of some kind. Potentially do this for multiple platforms.
-
-```sh
-make install
-npm test
-```
-&nbsp;
 
 ## Release History
 
@@ -320,20 +309,4 @@ Distributed under the MIT license. See ``LICENSE`` for more information.
 
 [https://github.com/bxp151/exploretransform](https://github.com/bxp151/exploretransform)
 
-&nbsp;
 
-## Contributing
-
-1. Fork it (<https://github.com/yourname/yourproject/fork>)
-2. Create your feature branch (`git checkout -b feature/fooBar`)
-3. Commit your changes (`git commit -am 'Add some fooBar'`)
-4. Push to the branch (`git push origin feature/fooBar`)
-5. Create a new Pull Request
-
-<!-- Markdown link & img dfn's -->
-[npm-image]: https://img.shields.io/npm/v/datadog-metrics.svg?style=flat-square
-[npm-url]: https://npmjs.org/package/datadog-metrics
-[npm-downloads]: https://img.shields.io/npm/dm/datadog-metrics.svg?style=flat-square
-[travis-image]: https://img.shields.io/travis/dbader/node-datadog-metrics/master.svg?style=flat-square
-[travis-url]: https://travis-ci.org/dbader/node-datadog-metrics
-[wiki]: https://github.com/yourname/yourproject/wiki
