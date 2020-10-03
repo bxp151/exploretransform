@@ -52,7 +52,6 @@ import exploretransform as et
 df, X, y = et.loadboston()
 ```
 
-
 &nbsp;
 
 ### Example: describe()
