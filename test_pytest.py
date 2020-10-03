@@ -1,8 +1,6 @@
 import inspect, os.path
 filename = inspect.getframeinfo(inspect.currentframe()).filename
 path = os.path.dirname(os.path.abspath(filename))
-# path = '/Users/bxp151/ml/000_special_projects/01_exploretransform/exploretransform'
-# os.chdir(path)
 import exploretransform as et
 import pandas as pd
    

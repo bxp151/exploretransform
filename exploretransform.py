@@ -30,29 +30,16 @@ def nested(obj, retloc = False):
     
     Example 
     -------
-    a = [1,2,3]
-    b = [a,a]
-    c = (1,2,3)
-    d = pd.DataFrame({'first' : [1, 2, 3, (1,2,3), 4, 5, 6],
+    a = pd.DataFrame({'first' : [1, 2, 3, (1,2,3), 4, 5, 6],
                   'second': [2, 4, 5, [1,3,4], 6, 7, 8]}
                  , columns = ['first', 'second'])
     
-    checkNested(d, locs = True)
+    checkNested(a, locs = True)
     [(3, 0), (3, 1)]
 
-    checkNested(d)
+    checkNested(a)
     Out[59]: False
     
-    checkNested(b)
-    Out[60]: True
-    
-    checkNested(c)
-    Out[61]: False
-    
-    checkNested(d)
-    Out[62]: True
-
-
     ---------- 
     '''  
     
@@ -107,7 +94,6 @@ def nested(obj, retloc = False):
     
     if retloc: return locs
     else: return len(locs) > 0
-
 
 
 def loadboston():
@@ -165,7 +151,7 @@ def describe(X):
     q_inf:   quanitity of infinity  
     p_inf:   percent infinity
     dtype:   python dtype  
-    uniqe:   unique levels
+    lvls:    unique levels
 
 
     Example 
@@ -231,7 +217,13 @@ def glimpse(X):
 
     Returns
     -------
-    All variables, dtypes, and first five observations
+    Columns based on passed dataframe:
+        
+    variable    name of variable
+    dtype	    Python dtype
+    lvls	    unique values of variable
+    obs	        number of observations
+    head	    first five observations
 
     Example 
     -------
@@ -239,13 +231,12 @@ def glimpse(X):
     df, X, y = et.loadboston()
     et.glimpse(df.iloc[:,0:5])
     
-
-      variable    dtype                            first_five_observations
-    0     town   object  [Nahant, Swampscott, Swampscott, Marblehead, M...
-    1      lon  float64       [-70.955, -70.95, -70.936, -70.928, -70.922]
-    2      lat  float64          [42.255, 42.2875, 42.283, 42.293, 42.298]
-    3    cmedv  float64                     [24.0, 21.6, 34.7, 33.4, 36.2]
-    4     crim  float64  [0.00632, 0.02731, 0.02729, 0.0323699999999999...
+       variable     dtype  ...  obs                                               head
+    0      town    object  ...  506  [Nahant, Swampscott, Swampscott, Marblehead, M...
+    1       lon   float64  ...  506       [-70.955, -70.95, -70.936, -70.928, -70.922]
+    2       lat   float64  ...  506          [42.255, 42.2875, 42.283, 42.293, 42.298]
+    3      crim   float64  ...  506  [0.00632, 0.02731, 0.02729, 0.0323699999999999...
+    4        zn   float64  ...  506                         [18.0, 0.0, 0.0, 0.0, 0.0]
 
     ---------- 
     '''        
@@ -260,13 +251,13 @@ def glimpse(X):
     g['lvls'] = X.nunique().values 
     g['obs'] = len(X)
     
-    g['first_five_observations'] = ''
+    g['head'] = ''
     
     # get the first 5 items for each variable
     # transpose the data frame and store the values
     x = X.apply((pd.DataFrame.head), axis = 0 ).T.values
     for i in range(0, len(x)):
-        g.at[i,'first_five_observations'] = x[i]
+        g.at[i,'head'] = x[i]
     
     
     return g
@@ -344,18 +335,16 @@ def freq(srs):
     Parameters
     ----------
     srs:    series to analyze
-    plot:   flag inicating whether to plot table
 
     Returns
     -------
-    If plot is false: Dataframe with the following columns:
+    Dataframe with the following columns:
         
     col:    Unique levels in the column
     freq:   Count of each level
     perc:   Percent each level contributes
     cump:   Cumulative percent 
     
-    If plot is true: prints above Dataframe and displays plot
     
     Example 
     -------
