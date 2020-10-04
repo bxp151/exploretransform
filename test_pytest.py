@@ -36,44 +36,44 @@ def test_loadboston_df():
     assert d0.equals(d1)
 
 ###############################################################################
-#  describe(X)
+#  explore(X)
 ###############################################################################
 
-def test_describe_type():
+def test_explore_type():
     d0 = 'string'
-    assert et.describe(d0) == "Function only accetps dataframes"
+    assert et.explore(d0) == "Function only accetps dataframes"
 
-def test_describe_nest():
+def test_explore_nest():
     d1 = pd.DataFrame({'first' : [1, 2, 3, (1,2,3), 4, 5, 6],
       'second': [2, 4, 5, [1,3,4], 6, 7, 8]} ,columns = ['first', 'second'])
-    assert et.describe(d1) == "Please collapse any nested values in your dataframe"
+    assert et.explore(d1) == "Please collapse any nested values in your dataframe"
     
 
-def test_describe_pos():
+def test_explore_pos():
     d0,X,y = et.loadboston()
     # Adding NA and inf values to dataframe
     d0.at[0, 'town'] = None
     d0.at[0,'lon'] = float('inf')
-    d1 = pd.read_pickle(path + "/data/describe.pkl") 
-    assert et.describe(d0).equals(d1)
+    d1 = pd.read_pickle(path + "/data/explore.pkl") 
+    assert et.explore(d0).equals(d1)
 
 ###############################################################################
-#  glimpse(X) 
+#  peek(X) 
 ###############################################################################
 
-def test_glimpse_pos():
+def test_peek_pos():
     d0,X,y = et.loadboston()
-    d1 = pd.read_pickle(path + "/data/glimpse.pkl") 
-    assert et.glimpse(d0).equals(d1)
+    d1 = pd.read_pickle(path + "/data/peek.pkl") 
+    assert et.peek(d0).equals(d1)
     
-def test_glimpse_typechk():
+def test_peek_typechk():
     d0 = 'string'
-    assert et.glimpse(d0) == "Function only accetps dataframes"
+    assert et.peek(d0) == "Function only accetps dataframes"
 
-def test_glimpse_nest():
+def test_peek_nest():
     d0 = pd.DataFrame({'first' : [1, 2, 3, (1,2,3), 4, 5, 6],
       'second': [2, 4, 5, [1,3,4], 6, 7, 8]} ,columns = ['first', 'second'])
-    assert et.glimpse(d0) == "Please collapse any nested values in your dataframe"
+    assert et.peek(d0) == "Please collapse any nested values in your dataframe"
 
 ###############################################################################
 #  plotfreq(freqdf) 

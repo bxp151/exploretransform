@@ -3,26 +3,29 @@
 """
 Generated data for pytest
 """
-# import os.path
-# path = '/Users/bxp151/ml/000_special_projects/01_exploretransform/exploretransform'
-# os.chdir(path)
-# import exploretransform as et
-# import plotnine as pn
-# import pandas as pd
+import os.path
+path = '/Users/bxp151/ml/000_special_projects/01_exploretransform/exploretransform'
+os.chdir(path)
+# import inspect, os.path
+# filename = inspect.getframeinfo(inspect.currentframe()).filename
+# path = os.path.dirname(os.path.abspath(filename))
+import exploretransform as et
+import plotnine as pn
+import pandas as pd
 
-# df, X, y = et.loadboston()
+df, X, y = et.loadboston()
 
 # loadboston()
 # df.to_pickle(path + "/data/loadboston.pkl", compression = None)
 
-# describe()
+# explore()
 # df.at[0, 'town'] = None
 # df.at[0,'lon'] = float('inf')
-# df = et.describe(df)
-# df.to_pickle(path + "/data/describe.pkl", compression = None)
+# df = et.explore(df)
+# df.to_pickle(path + "/data/explore.pkl", compression = None)
 
-# glimpse
-# et.glimpse(df).to_pickle(path + "/data/glimpse.pkl", compression = None)
+# peek
+et.peek(df).to_pickle(path + "/data/peek.pkl", compression = None)
 
 # freq
 # f = et.freq(X['rad'])

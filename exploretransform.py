@@ -130,7 +130,7 @@ def loadboston():
     return df, x, y
   
   
-def describe(X):
+def explore(X):
     
 
     '''
@@ -158,7 +158,7 @@ def describe(X):
     -------
     import exploretransform as et
     df, X, y = et.loadboston()
-    et.describe(df.iloc[:,0:5])
+    et.explore(df.iloc[:,0:5])
     
       variable  q_zer  p_zer  q_na  p_na  q_inf  p_inf    dtype  lvls
     0     town      0    0.0     0   0.0      0    0.0   object    92
@@ -205,7 +205,7 @@ def describe(X):
     return df
 
 
-def glimpse(X):
+def peek(X):
     
     
     '''
@@ -213,7 +213,7 @@ def glimpse(X):
     
     Parameters
     ----------
-    X: dataframe to glimpse into
+    X: dataframe to peek into
 
     Returns
     -------
@@ -229,7 +229,7 @@ def glimpse(X):
     -------
     import exploretransform as et
     df, X, y = et.loadboston()
-    et.glimpse(df.iloc[:,0:5])
+    et.peek(df.iloc[:,0:5])
     
        variable     dtype  ...  obs                                               head
     0      town    object  ...  506  [Nahant, Swampscott, Swampscott, Marblehead, M...
