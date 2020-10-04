@@ -17,27 +17,25 @@ def nested(obj, retloc = False):
     
     Parameters
     ----------
-    obj:    a list, series, or dataframe
-    locs:   True or False
+    obj:      a list, series, or dataframe
+    retloc: True or False
     
     Returns
     -------
     
-    locs = 'True'   Returns locations of nested objects:
-                    For dataframes, it returns tuples
-                    For other objects it returns a list of indicies
-    locs = 'False'  Returns true if any nested objects reside in passed object
+    retloc = 'True'     Returns locations of nested objects:
+                        For dataframes, it returns tuples
+                        For other objects it returns a list of indicies
+    retloc = 'False'    Returns true if any nested objects reside in passed object
     
     Example 
     -------
-    a = pd.DataFrame({'first' : [1, 2, 3, (1,2,3), 4, 5, 6],
-                  'second': [2, 4, 5, [1,3,4], 6, 7, 8]}
-                 , columns = ['first', 'second'])
+
     
-    checkNested(a, locs = True)
+    nested(a, locs = True)
     [(3, 0), (3, 1)]
 
-    checkNested(a)
+    nested(a)
     Out[59]: False
     
     ---------- 
@@ -670,11 +668,18 @@ def ascores(X, y):
 
     ---------- 
     
-    '''    
+    ''' 
+    
+    # X.loc[:,'tax']
+    
+    # import exploretransform as et
+    # df, X, y = et.loadboston()
+    # X = X.select_dtypes('number')
+    
     # Convert any ints to float for dcor calculation
     if len(X.select_dtypes(int).columns) > 0:
         for col in X.select_dtypes(int).columns:
-            X[col] = X[col].astype('float')
+            X.loc[:, col] = X[col].astype('float')
         
     r = pd.DataFrame()
     mine = MINE(alpha=0.6, c=15) 
