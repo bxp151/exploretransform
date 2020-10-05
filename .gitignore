@@ -1,5 +1,9 @@
 **/.DS_Store
-# ipynb_checkpoints
+.pytest_cache
 .ipynb_checkpoints
-# Byte-compiled / optimized / DLL files
-__pycache__/
+__pycache__
+build
+dist
+exploretransform.egg-info
+
+
