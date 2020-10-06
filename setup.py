@@ -13,7 +13,7 @@ long_description = open('README.md').read()
 # This call to setup() does all the work
 setuptools.setup(
     name="exploretransform",
-    version="1.0.5",
+    version="1.0.7",
     author="Brian Pietracatella",
     author_email="bpietrac@gmail.com",
     description="Explore and transform your data",

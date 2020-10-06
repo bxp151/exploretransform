@@ -19,7 +19,7 @@ Python PYPI:
 Import the exploretransform package:
 
 ```python
-import exploretransform.exploretransform as et
+import exploretransform as et
 ```
 &nbsp;
 
@@ -304,7 +304,7 @@ dtype | Python dtype
 
 * 1.0.0
     * First release
-* 1.0.1 - 1.0.5
+* 1.0.1 - 1.0.7
 	 * Minor adjustments to get package working correctly
 
 &nbsp;
