@@ -3,11 +3,11 @@
 
 
 
-Exploretransform is a collection of data exploration functions and custom pipline trasformers.  It's aims to streamline exploratory data analysis and extend some of scikit's data transformers.
+Exploretransform is a collection of data exploration functions and custom pipline trasformers.  It aims to streamline exploratory data analysis and extend some of scikit's data transformers.
 &nbsp;
 
 ## Package Guide
-Examples of using the exploretransform functions and classes are contained in examples.ipynb.  Details about each function or class (docstrings) can be accessed using ?name
+Examples of using the exploretransform functions and classes are contained in examples.ipynb located on the [github repository](https://github.com/bxp151/exploretransform).  Details about each function or class (docstrings) can be accessed using ?name
 
 ## Installation
 
@@ -19,7 +19,7 @@ Python PYPI:
 Import the exploretransform package:
 
 ```python
-import exploretransform as et
+import exploretransform.exploretransform as et
 ```
 &nbsp;
 
