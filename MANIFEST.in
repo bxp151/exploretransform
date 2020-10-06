@@ -1,0 +1,5 @@
+prune .git 
+prune .ipynb_checkpoints
+prune .pytest_cache
+prune __pycache_
+global-exclude .DS_Store datagen.py
