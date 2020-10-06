@@ -302,8 +302,10 @@ dtype | Python dtype
 
 ## Release History
 
-* 0.1.0
+* 1.0.0
     * First release
+* 1.0.1 - 1.0.5
+	 * Minor adjustments to get package working correctly
 
 &nbsp;
 
