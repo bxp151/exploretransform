@@ -8,7 +8,7 @@ Exploretransform is a collection of data exploration functions and custom piplin
 
 ## Package Guide
 
-For a complete guide on using this package, please refer to this [article](https://towardsdatascience.com/make-exploratory-data-analysis-eda-faster-74c434595bcf).  Details about each function or class (docstrings) can be accessed using ?name.  
+For a complete guide on using this package, please refer to this [article](https://towardsdatascience.com/make-exploratory-data-analysis-eda-faster-74c434595bcf) or  [examples.ipynb](https://github.com/bxp151/exploretransform/blob/master/examples.ipynb).  Details about each function or class (docstrings) can be accessed using ?name.  
 
 
 ## Installation
