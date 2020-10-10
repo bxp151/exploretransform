@@ -2,6 +2,7 @@
 > Explore and transform your datasets
 
 
+[![Downloads](https://pepy.tech/badge/video2tfrecord)](https://pepy.tech/project/video2tfrecord)
 
 Exploretransform is a collection of data exploration functions and custom pipline trasformers.  It aims to streamline exploratory data analysis and extend some of scikit's data transformers.
 &nbsp;

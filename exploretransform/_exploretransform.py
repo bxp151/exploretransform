@@ -864,4 +864,45 @@ class CorrelationFilter( BaseEstimator, TransformerMixin ):
     
     def transform( self, X, y = None ):
         return X.drop(self.names, axis = 1)
+
+
+def printcode(t, file):
     
+    '''
+    ----------   
+    
+    Parameters
+    ----------
+    t:      Dataframe from explore step
+    file:   File to write output code
+    
+    Returns
+    -------
+    
+    text file with comments and code
+    
+    Example 
+    -------
+    printcode(t, file)
+    
+    # columns lowercase
+    df.columns = map(str.lower, df.columns)
+
+
+    # log transform cmedv
+    df["cmedv"] = np.log(df["cmedv"])
+    
+    
+    ---------- 
+    '''  
+    
+    l = list()
+    t = t[t["sequence"] == "process"]
+    
+    for i in range(len(t)):
+        l.append("# " + t["action"][i])
+        l.append(t["code"][i])
+        l.append("\n")
+        
+    with open(file,'w') as f:
+        f.write('\n'.join(l))
