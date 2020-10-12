@@ -866,15 +866,15 @@ class CorrelationFilter( BaseEstimator, TransformerMixin ):
         return X.drop(self.names, axis = 1)
 
 
-def printcode(t, file):
+def printcode(df, path):
     
     '''
     ----------   
     
     Parameters
     ----------
-    t:      Dataframe from explore step
-    file:   File to write output code
+    df:     Dataframe from explore step
+    path:   File path to write output code
     
     Returns
     -------
@@ -883,7 +883,7 @@ def printcode(t, file):
     
     Example 
     -------
-    printcode(t, file)
+    printcode(df, path)
     
     # columns lowercase
     df.columns = map(str.lower, df.columns)
@@ -897,12 +897,130 @@ def printcode(t, file):
     '''  
     
     l = list()
-    t = t[t["sequence"] == "process"]
+    # df = df[df["sequence"] == sequence]
     
-    for i in range(len(t)):
-        l.append("# " + t["action"][i])
-        l.append(t["code"][i])
+    for i in range(len(df)):
+        l.append("# " + df["action"][i])
+        l.append(df["code"][i])
         l.append("\n")
         
-    with open(file,'w') as f:
+    with open(path,'w') as f:
         f.write('\n'.join(l))
+
+
+
+def to_csv(df, path):
+    '''
+    ----------   
+    
+    Parameters
+    ----------
+    df:     dataframe to write
+    path:   write destination 
+    
+    Returns
+    -------
+    
+    This function take a Pandas DataFrame and writes dtype metadata on the 
+    first rows of the output file.  Used in conjunction with read_csv()
+    
+
+    Output is a .csv file.
+    
+    Example 
+    -------
+    to_csv(df, ".../filename.csv")
+    
+    ---------- 
+    '''  
+    
+    def ordlist(df):     
+        # check for ordinal and store name, catDtype and underlying dtype
+        l = list()
+        c = df.select_dtypes('category').columns              
+        
+        if len(c) > 0:
+            for col in c:
+                if df[col].unique().ordered == True:
+                    l.append([col, df[col].cat.categories, 
+                              str(df[col].unique().categories.dtype)])         
+        return l
+
+    df2 = df.copy()
+    dt = df2.dtypes.to_frame('dtypes')
+    o = ordlist(df)
+    
+    if len(o) > 0 : 
+        for item in o:
+            df2.loc[-1] = ' '
+            df2.iloc[-1, 0] = item[0]
+            df2.iloc[-1, 1] = list(item[1].values)
+            df2.iloc[-1, 2] = item[2]
+            # df2.iloc[-1, 1] = item[1]
+            df2.index = df2.index + 1 
+            df2.sort_index(inplace=True) 
+            dt.loc[item[0]] = "ordinal" # change to ordinal to flag read_csv
+            
+    df2.loc[-1] = dt['dtypes']
+    df2.index = df2.index + 1
+    df2.sort_index(inplace=True)
+
+    df2.to_csv(path, index=False)
+    
+def read_csv(path):
+    '''
+    ----------   
+    
+    Parameters
+    ----------
+    df:     dataframe to write
+    path:   write destination 
+    
+    Returns
+    -------
+    
+    This function reads a .csv created by to_csv() and uses the dtype
+    metadata from the top rows to assign the correct dtypes to the columns.
+        
+    
+    Example 
+    -------
+    
+    read_csv(".../filename.csv")
+    
+    ---------- 
+    ''' 
+    
+    dtypes = {key:value for (key,value) in pd.read_csv(path,    
+              nrows=1).iloc[0].to_dict().items() if 'date' not in value}
+    
+    parse_dates = [key for (key,value) in pd.read_csv(path, 
+                   nrows=1).iloc[0].to_dict().items() if 'date' in value]
+    
+    o = list(dtypes.values()).count("ordinal")
+    
+    if o > 0: # if ordinals exist, read  and store metadata from csv file
+        x = pd.read_csv(path, nrows=o, skiprows = 2, usecols=[0,1,2], 
+                        names = ["var", "categories", "dtypes"])
+        x["CategoricalDtype"] = " "
+        
+        for row in range(o):
+            y = list(eval(x["categories"][row]))
+            x["CategoricalDtype"][row] = CategoricalDtype(categories=y, ordered=True)
+        
+        # Change dtype from ordinal to original data type
+        for item in x["var"]:
+            dtypes[item] = x["dtypes"][x["var"] == item].item()           
+    
+    # read file skipping rows used for storing metadata
+    df = pd.read_csv(path, dtype=dtypes, parse_dates=parse_dates, 
+                    skiprows=list(range(1, o+2)), header=0)
+    
+    # transform ordinal columns
+    if o > 0:
+        for item in x["var"]:
+            cat_dtype = x["CategoricalDtype"][x["var"] == item].item()    
+            df[item] = df[item].astype(cat_dtype)
+            
+    return df
+

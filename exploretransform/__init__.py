@@ -1,1 +1,1 @@
-from ._exploretransform import (nested, loadboston, explore, peek, plotfreq,                                freq, corrtable, calcdrop, skewstats, ascores,                                ColumnSelect, CategoricalOtherLevel,                                 CorrelationFilter)
+from ._exploretransform import (nested, loadboston, explore, peek, plotfreq,                                freq, corrtable, calcdrop, skewstats, ascores,                                ColumnSelect, CategoricalOtherLevel,                                 CorrelationFilter, printcode)
