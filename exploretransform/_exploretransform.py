@@ -907,8 +907,6 @@ def printcode(df, path):
     with open(path,'w') as f:
         f.write('\n'.join(l))
 
-
-
 def to_csv(df, path):
     '''
     ----------   
@@ -1023,4 +1021,3 @@ def read_csv(path):
             df[item] = df[item].astype(cat_dtype)
             
     return df
-
